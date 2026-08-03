@@ -1,0 +1,42 @@
+/* Page Header */
+.department-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Card */
+.card {
+    border-radius: 12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+
+/* Table */
+.table th {
+    color:var(--primary-color);
+    color: white;
+    text-align: center;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Buttons */
+.btn-warning,
+.btn-danger {
+    margin-right: 5px;
+}
+
+/* Page Title */
+h3 {
+    font-weight: 600;
+}
+.table tbody tr:hover{
+
+    background:#f5f5f5;
+
+    transition:.3s;
+
+}

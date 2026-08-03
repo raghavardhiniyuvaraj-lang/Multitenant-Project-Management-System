@@ -1,0 +1,146 @@
+:root{
+
+    --primary-color:#0d6efd;
+
+    --primary-dark:#0b5ed7;
+
+    --primary-light:#eaf3ff;
+
+    --text-light:#ffffff;
+
+    --border-radius:12px;
+
+    --shadow:0 8px 20px rgba(0,0,0,.12);
+
+}
+/* ===========================
+   Bootstrap Theme Override
+=========================== */
+
+.btn-primary{
+
+    background: var(--primary-color) !important;
+
+    border-color: var(--primary-color) !important;
+
+}
+
+.btn-primary:hover{
+
+    background: var(--primary-color) !important;
+
+    border-color: var(--primary-color) !important;
+
+    filter: brightness(90%);
+
+}
+
+.btn-outline-primary{
+
+    color: var(--primary-color) !important;
+
+    border-color: var(--primary-color) !important;
+
+}
+
+.btn-outline-primary:hover{
+
+    background: var(--primary-color) !important;
+
+    color: white !important;
+
+}
+
+.page-link{
+
+    color: var(--primary-color);
+
+}
+
+.page-item.active .page-link{
+
+    background: var(--primary-color);
+
+    border-color: var(--primary-color);
+
+}
+/* ===========================
+   Tables
+=========================== */
+
+.table thead{
+
+    background: var(--primary-color);
+
+}
+
+.table thead th{
+
+    background: var(--primary-color) !important;
+
+    color: white !important;
+
+    border-color: var(--primary-color) !important;
+
+}
+.theme-btn{
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.theme-btn:hover{
+    filter: brightness(90%);
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+.form-control:focus{
+
+    border-color: var(--primary-color);
+
+    box-shadow:0 0 0 .2rem rgba(0,0,0,.08);
+
+}
+.page-title{
+    color: var(--primary-color);
+}
+.theme-btn{
+
+    background: var(--primary-color);
+
+    border-color: var(--primary-color);
+
+    color:white;
+
+}
+
+.theme-btn:hover{
+
+    background: var(--primary-color);
+
+    border-color: var(--primary-color);
+
+    color:white;
+
+    filter:brightness(.9);
+
+}
+.badge{
+    border-radius:20px;
+    padding:8px 14px;
+    font-size:13px;
+}
+.table tbody tr:hover{
+    background:#f8f9fa;
+    transition:.3s;
+}
+.action-btn{
+    width:75px;
+}
+.description-cell{
+    max-width:300px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}

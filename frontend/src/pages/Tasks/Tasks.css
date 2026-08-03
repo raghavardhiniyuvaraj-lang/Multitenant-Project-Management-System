@@ -1,0 +1,16 @@
+.task-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.table td,
+.table th{
+    vertical-align:middle;
+}
+
+.card{
+    border-radius:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+}

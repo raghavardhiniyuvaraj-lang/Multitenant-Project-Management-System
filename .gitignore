@@ -1,0 +1,11 @@
+backend (2).zip
+*.zip
+
+backend/node_modules
+frontend/node_modules
+
+backend/.env
+
+backend/uploads/reports
+
+frontend/build

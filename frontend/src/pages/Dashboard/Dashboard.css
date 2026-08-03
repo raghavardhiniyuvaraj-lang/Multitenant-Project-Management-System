@@ -1,0 +1,201 @@
+body{
+    background:#f5f7fb;
+}
+
+.dashboard-title{
+    font-size:32px;
+    font-weight:700;
+    color:#2c3e50;
+}
+
+.dashboard-card{
+
+    border:none;
+    border-radius:18px;
+    color:#fff;
+    text-align:center;
+    padding:25px;
+    transition:.3s;
+    cursor:pointer;
+    overflow:hidden;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+
+}
+
+.dashboard-card:hover{
+
+    transform:translateY(-8px);
+    box-shadow:0 15px 35px rgba(0,0,0,.18);
+
+}
+
+.dashboard-card svg{
+
+    margin-bottom:15px;
+
+}
+
+.dashboard-card h3{
+
+    font-size:34px;
+    font-weight:bold;
+    margin-bottom:8px;
+
+}
+
+.dashboard-card p{
+
+    margin:0;
+    font-size:18px;
+    opacity:.95;
+
+}
+
+/* Card Colors */
+
+.card-blue{
+
+    background:linear-gradient(135deg,#4e73df,#224abe);
+
+}
+
+.card-green{
+
+    background:linear-gradient(135deg,#1cc88a,#13855c);
+
+}
+
+.card-orange{
+
+    background:linear-gradient(135deg,#f6c23e,#dda20a);
+    color:#222;
+
+}
+
+.card-cyan{
+
+    background:linear-gradient(135deg,#36b9cc,#258391);
+
+}
+
+.card-yellow{
+
+    background:linear-gradient(135deg,#f4b400,#ff9800);
+
+}
+
+.card-red{
+
+    background:linear-gradient(135deg,#e74a3b,#c0392b);
+
+}
+
+.card-purple{
+
+    background:linear-gradient(135deg,#6f42c1,#512da8);
+
+}
+
+/* Charts */
+
+.chart-card{
+
+    border:none;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.chart-card .card-body{
+
+    padding:25px;
+
+}
+
+/* Tables */
+
+.table-card{
+
+    border:none;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.table-card .card-body{
+
+    padding:25px;
+
+}
+
+.table{
+
+    margin-bottom:0;
+
+}
+
+.table thead{
+
+    font-size:15px;
+
+}
+
+.table tbody td{
+
+    vertical-align:middle;
+
+}
+
+.badge{
+
+    font-size:13px;
+    padding:7px 10px;
+
+}
+
+/* Responsive */
+
+@media(max-width:768px){
+
+.dashboard-title{
+
+    font-size:24px;
+
+}
+
+.dashboard-card{
+
+    margin-bottom:20px;
+
+}
+
+.chart-card{
+
+    margin-bottom:20px;
+
+}
+
+}
+/* Quick Actions */
+
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+}
+.chart-card,
+.table-card,
+.quick-action-card {
+    height: 100%;
+}
+
+.chart-card .card-body,
+.table-card .card-body {
+    display: flex;
+    flex-direction: column;
+}

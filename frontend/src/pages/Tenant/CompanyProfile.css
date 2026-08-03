@@ -1,0 +1,182 @@
+/* ===========================
+   Company Header
+=========================== */
+
+.company-header {
+    margin-bottom: 30px;
+}
+
+.company-header h2 {
+    font-size: 32px;
+    font-weight: 700;
+    color:var(--primary-color);
+}
+
+.company-header p {
+    color: #777;
+    font-size: 15px;
+}
+
+/* ===========================
+   Company Card
+=========================== */
+
+.company-card {
+    border: none;
+    border-radius: 20px;
+    padding: 30px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+}
+
+/* ===========================
+   Company Logo
+=========================== */
+
+.company-logo {
+
+    width: 180px;
+    height: 180px;
+
+    object-fit: cover;
+
+    border-radius: 20px;
+
+   border:5px solid var(--primary-color);
+
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+
+    transition: .3s;
+
+}
+
+.company-logo:hover{
+
+    transform: scale(1.03);
+
+}
+
+/* ===========================
+   Form
+=========================== */
+
+.company-card .form-label {
+
+    font-weight: 600;
+
+    color: #444;
+
+}
+
+.company-card .form-control,
+
+.company-card .form-select {
+
+    border-radius: 10px;
+
+    padding: 12px 15px;
+
+    border: 1px solid #ced4da;
+
+    transition: .3s;
+
+}
+
+.company-card .form-control:focus,
+
+.company-card .form-select:focus {
+
+   border-color:var(--primary-color);
+
+    box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+
+}
+
+/* Textarea */
+
+.company-card textarea {
+
+    resize: none;
+
+}
+
+/* ===========================
+   Upload Button
+=========================== */
+
+.company-card input[type=file] {
+
+    margin-top: 15px;
+
+}
+
+.company-card button {
+
+    min-width: 200px;
+
+    border-radius: 10px;
+
+    font-weight: 600;
+
+    padding: 10px 25px;
+
+    transition: .3s;
+
+}
+
+.company-card button:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 20px rgba(13,110,253,.25);
+
+}
+
+/* ===========================
+   Theme Color Picker
+=========================== */
+
+input[type="color"]{
+
+    height:55px;
+
+    cursor:pointer;
+
+    padding:5px;
+
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media (max-width:768px){
+
+    .company-card{
+
+        padding:20px;
+
+    }
+
+    .company-logo{
+
+        width:140px;
+
+        height:140px;
+
+    }
+
+    .company-header h2{
+
+        font-size:26px;
+
+    }
+
+    .company-card button{
+
+        width:100%;
+
+    }
+
+}
+
