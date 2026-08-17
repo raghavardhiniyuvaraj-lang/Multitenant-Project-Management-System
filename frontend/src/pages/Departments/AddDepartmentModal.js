@@ -11,31 +11,38 @@ function AddDepartmentModal({ show, handleClose, refresh }) {
 
     const saveDepartment = async () => {
 
-        try {
+    // Validation
+    if (!departmentName.trim()) {
+        toast.error("Department Name is required");
+        return;
+    }
 
-            await api.post("/departments", {
-                department_name: departmentName,
-                description: description
-            });
+    try {
 
-            toast.success("Department Added Successfully");
+        await api.post("/departments", {
+            department_name: departmentName.trim(),
+            description: description.trim()
+        });
 
-            setDepartmentName("");
-            setDescription("");
+        toast.success("Department Added Successfully");
 
-            refresh();
+        // Reset form
+        setDepartmentName("");
+        setDescription("");
 
-            handleClose();
+        refresh();
+        handleClose();
 
-        } catch (err) {
+    } catch (err) {
 
-            toast.error(
-                err.response?.data?.message || "Something went wrong"
-            );
+        toast.error(
+            err.response?.data?.message ||
+            "Failed to add department"
+        );
 
-        }
+    }
 
-    };
+};
 
     return (
 
@@ -64,13 +71,14 @@ function AddDepartmentModal({ show, handleClose, refresh }) {
                         </Form.Label>
 
                         <Form.Control
-                            type="text"
-                            placeholder="Enter Department Name"
-                            value={departmentName}
-                            onChange={(e) =>
-                                setDepartmentName(e.target.value)
-                            }
-                        />
+    type="text"
+    placeholder="Enter Department Name"
+    value={departmentName}
+    onChange={(e) =>
+        setDepartmentName(e.target.value)
+    }
+    required
+/>
 
                     </Form.Group>
 
@@ -81,14 +89,14 @@ function AddDepartmentModal({ show, handleClose, refresh }) {
                         </Form.Label>
 
                         <Form.Control
-                            as="textarea"
-                            rows={3}
-                            placeholder="Enter Description"
-                            value={description}
-                            onChange={(e) =>
-                                setDescription(e.target.value)
-                            }
-                        />
+    as="textarea"
+    rows={3}
+    placeholder="Enter Description"
+    value={description}
+    onChange={(e) =>
+        setDescription(e.target.value)
+    }
+/>
 
                     </Form.Group>
 

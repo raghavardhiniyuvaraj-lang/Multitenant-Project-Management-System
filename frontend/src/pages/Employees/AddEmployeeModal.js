@@ -49,42 +49,56 @@ function AddEmployeeModal({ show, handleClose, refresh }) {
 
     const handleSubmit = async () => {
 
-        try {
+    if (!departmentId) {
+        toast.error("Please select a department");
+        return;
+    }
 
-            await api.post("/employees", {
+    if (!employeeName.trim()) {
+        toast.error("Employee name is required");
+        return;
+    }
 
-                department_id: departmentId,
-                employee_name: employeeName,
-                email,
-                phone,
-                designation,
-                salary
+    if (!email.trim()) {
+        toast.error("Email is required");
+        return;
+    }
 
-            });
+    try {
 
-            toast.success("Employee Added Successfully");
+        await api.post("/employees", {
 
-            refresh();
+            department_id: departmentId,
+            employee_name: employeeName.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            designation: designation.trim(),
+            salary: salary || null
 
-            handleClose();
+        });
 
-            setDepartmentId("");
-            setEmployeeName("");
-            setEmail("");
-            setPhone("");
-            setDesignation("");
-            setSalary("");
+        toast.success("Employee Added Successfully");
 
-        } catch (err) {
+        refresh();
+        handleClose();
 
-            alert(
-                err.response?.data?.message ||
-                "Failed to Add Employee"
-            );
+        setDepartmentId("");
+        setEmployeeName("");
+        setEmail("");
+        setPhone("");
+        setDesignation("");
+        setSalary("");
 
-        }
+    } catch (err) {
 
-    };
+        toast.error(
+            err.response?.data?.message ||
+            "Failed to Add Employee"
+        );
+
+    }
+
+};
 
     return (
 
@@ -149,11 +163,12 @@ function AddEmployeeModal({ show, handleClose, refresh }) {
                         </Form.Label>
 
                         <Form.Control
-                            value={employeeName}
-                            onChange={(e) =>
-                                setEmployeeName(e.target.value)
-                            }
-                        />
+    value={employeeName}
+    onChange={(e) =>
+        setEmployeeName(e.target.value)
+    }
+    required
+/>
 
                     </Form.Group>
 
@@ -165,13 +180,14 @@ function AddEmployeeModal({ show, handleClose, refresh }) {
 
                         </Form.Label>
 
-                        <Form.Control
-                            type="email"
-                            value={email}
-                            onChange={(e) =>
-                                setEmail(e.target.value)
-                            }
-                        />
+                       <Form.Control
+    type="email"
+    value={email}
+    onChange={(e) =>
+        setEmail(e.target.value)
+    }
+    required
+/>
 
                     </Form.Group>
 
@@ -184,11 +200,12 @@ function AddEmployeeModal({ show, handleClose, refresh }) {
                         </Form.Label>
 
                         <Form.Control
-                            value={phone}
-                            onChange={(e) =>
-                                setPhone(e.target.value)
-                            }
-                        />
+    type="tel"
+    value={phone}
+    onChange={(e) =>
+        setPhone(e.target.value)
+    }
+/>
 
                     </Form.Group>
 
@@ -218,12 +235,13 @@ function AddEmployeeModal({ show, handleClose, refresh }) {
                         </Form.Label>
 
                         <Form.Control
-                            type="number"
-                            value={salary}
-                            onChange={(e) =>
-                                setSalary(e.target.value)
-                            }
-                        />
+    type="number"
+    min="0"
+    value={salary}
+    onChange={(e) =>
+        setSalary(e.target.value)
+    }
+/>
 
                     </Form.Group>
 

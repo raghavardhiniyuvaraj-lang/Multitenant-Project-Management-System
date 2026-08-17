@@ -145,7 +145,10 @@ const deleteMember = async (id) => {
 
                                             <Button
     className="theme-btn action-btn"
-    onClick={() => handleEdit(member)}
+    onClick={() => {
+    setSelectedMember(member);
+    setShowEdit(true);
+}}
 >
     Edit
 </Button>
@@ -181,8 +184,8 @@ const deleteMember = async (id) => {
             <EditMemberModal
     show={showEdit}
     handleClose={() => setShowEdit(false)}
-    member={selectedMember}
     refresh={fetchMembers}
+    member={selectedMember}
 />
 
         </MainLayout>

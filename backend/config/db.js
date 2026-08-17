@@ -6,12 +6,19 @@ const pool = new Pool({
     port: process.env.DB_PORT,
     database: process.env.DB_NAME,
     user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    ssl: {
-        rejectUnauthorized: false,
-    },
+    password: process.env.DB_PASSWORD
+});
 
-    
+pool.on("connect", () => {
+    console.log("=================================");
+    console.log("DATABASE CONNECTION SUCCESS");
+    console.log("Database:", process.env.DB_NAME);
+    console.log("User:", process.env.DB_USER);
+    console.log("=================================");
+});
+
+pool.on("error", (err) => {
+    console.error("Unexpected PostgreSQL error:", err);
 });
 
 module.exports = pool;

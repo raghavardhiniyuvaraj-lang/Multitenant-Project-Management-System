@@ -37,11 +37,12 @@ function Departments() {
 
             setDepartments(res.data.departments);
 
-        } catch (err) {
-
-            console.log(err);
-
-        }
+        }catch (err) {
+    toast.error(
+        err.response?.data?.message ||
+        "Failed to load departments"
+    );
+}
 
     };
 
@@ -103,6 +104,7 @@ function Departments() {
                         </Button>
 
                     </div>
+                    <div className="table-responsive">
 
                     <Table striped bordered hover>
 
@@ -167,6 +169,7 @@ function Departments() {
                         </tbody>
 
                     </Table>
+                    </div>
 
                 </Card.Body>
 

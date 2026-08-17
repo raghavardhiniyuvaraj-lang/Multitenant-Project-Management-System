@@ -52,30 +52,61 @@ function EditProjectModal({
 
     };
 
-    const updateProject = async () => {
+const updateProject = async () => {
 
-        try {
+    // Project name validation
+    if (!formData.project_name.trim()) {
+        toast.error("Project Name is required");
+        return;
+    }
 
-            await api.put(
-                `/projects/${project.project_id}`,
-                formData
-            );
+    // Date validation
+    if (!formData.start_date) {
+        toast.error("Start Date is required");
+        return;
+    }
 
-            toast.success("Project Updated Successfully");
+    if (!formData.end_date) {
+        toast.error("End Date is required");
+        return;
+    }
 
-            refresh();
+    // Check date order
+    if (
+        new Date(formData.start_date) >
+        new Date(formData.end_date)
+    ) {
+        toast.error("End date cannot be before start date");
+        return;
+    }
 
-            handleClose();
+    try {
 
-        } catch (err) {
+        await api.put(
+            `/projects/${project.project_id}`,
+            {
+                ...formData,
+                project_name: formData.project_name.trim(),
+                description: formData.description.trim()
+            }
+        );
 
-            toast.error(
-    err.response?.data?.message || "Something went wrong"
-);
-        }
+        toast.success("Project Updated Successfully");
 
-    };
+        refresh();
 
+        handleClose();
+
+    } catch (err) {
+
+        toast.error(
+            err.response?.data?.message ||
+            "Something went wrong"
+        );
+
+    }
+
+};
     return (
 
         <Modal
@@ -102,10 +133,13 @@ function EditProjectModal({
                         </Form.Label>
 
                         <Form.Control
-                            name="project_name"
-                            value={formData.project_name}
-                            onChange={handleChange}
-                        />
+    type="text"
+    name="project_name"
+    value={formData.project_name}
+    onChange={handleChange}
+    placeholder="Enter Project Name"
+    required
+/>
 
                     </Form.Group>
 
@@ -131,12 +165,13 @@ function EditProjectModal({
                             Start Date
                         </Form.Label>
 
-                        <Form.Control
-                            type="date"
-                            name="start_date"
-                            value={formData.start_date}
-                            onChange={handleChange}
-                        />
+                    <Form.Control
+    type="date"
+    name="start_date"
+    value={formData.start_date}
+    onChange={handleChange}
+    required
+/>
 
                     </Form.Group>
 
@@ -147,11 +182,12 @@ function EditProjectModal({
                         </Form.Label>
 
                         <Form.Control
-                            type="date"
-                            name="end_date"
-                            value={formData.end_date}
-                            onChange={handleChange}
-                        />
+    type="date"
+    name="end_date"
+    value={formData.end_date}
+    onChange={handleChange}
+    required
+/>
 
                     </Form.Group>
 

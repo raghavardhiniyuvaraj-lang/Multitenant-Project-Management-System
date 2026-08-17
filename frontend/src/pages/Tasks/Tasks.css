@@ -1,16 +1,171 @@
-.task-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
+.task-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
 }
 
 .table td,
-.table th{
-    vertical-align:middle;
+.table th {
+vertical-align: middle;
 }
 
-.card{
-    border-radius:12px;
-    box-shadow:0 12px 30px rgba(0,0,0,.08);
+.card {
+border-radius: 12px;
+box-shadow: 0 12px 30px rgba(0, 0, 0, .08);
+}
+
+/* =========================================
+TASK FILTERS
+========================================= */
+
+.task-filters {
+background: #f8f9fc;
+border: 1px solid #e9ecef;
+border-radius: 12px;
+padding: 15px;
+margin-bottom: 15px;
+}
+
+.task-filters .form-control,
+.task-filters .form-select {
+min-height: 40px;
+border-color: #dee2e6;
+}
+
+.task-filters .input-group-text {
+background: #ffffff;
+border-color: #dee2e6;
+color: #6c757d;
+}
+
+/* =========================================
+CLEAR FILTER BUTTON
+========================================= */
+
+.clear-filter-btn {
+min-height: 40px;
+border-radius: 8px;
+}
+
+/* =========================================
+RESULT COUNT
+========================================= */
+
+.task-result-count {
+font-size: 13px;
+color: #6c757d;
+margin-bottom: 12px;
+}
+
+/* =========================================
+EMPTY RESULT
+========================================= */
+
+.no-task-row {
+padding: 35px !important;
+color: #6c757d;
+}
+
+/* =========================================
+ACTION BUTTONS
+========================================= */
+
+.action-btn {
+margin-right: 8px;
+border-radius: 7px;
+}
+
+.action-btn:last-child {
+margin-right: 0;
+}
+
+/* =========================================
+MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+.task-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.task-header button {
+    width: 100%;
+}
+
+.task-filters {
+    padding: 12px;
+}
+
+}
+/* =========================================
+DUE DATE MANAGEMENT
+========================================= */
+
+.due-date-container {
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+
+.due-date-value {
+font-size: 13px;
+font-weight: 500;
+color: #343a40;
+}
+
+.due-status {
+display: inline-flex;
+width: fit-content;
+padding: 3px 8px;
+border-radius: 20px;
+font-size: 10px;
+font-weight: 600;
+}
+
+/* Overdue */
+
+.due-overdue {
+background: #ffe5e5;
+color: #dc3545;
+}
+
+/* Due Today */
+
+.due-today {
+background: #fff0d6;
+color: #d97706;
+}
+
+/* Upcoming */
+
+.due-upcoming {
+background: #e5f0ff;
+color: #0d6efd;
+}
+
+/* Completed */
+
+.due-completed {
+background: #e5f7ed;
+color: #198754;
+}
+
+/* No Due Date */
+
+.due-none {
+background: #f1f3f5;
+color: #6c757d;
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+.due-date-container {
+    min-width: 100px;
+}
 }

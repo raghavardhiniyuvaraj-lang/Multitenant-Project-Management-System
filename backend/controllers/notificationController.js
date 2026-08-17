@@ -3,134 +3,199 @@ const pool = require("../config/db");
 // =======================================
 // Get Notifications
 // =======================================
-
 exports.getNotifications = async (req, res) => {
 
-    try {
+try {
 
-        const tenantId = req.user.tenantId;
+    const tenantId = req.user.tenantId;
 
-        const notifications = [];
+    const result = await pool.query(
+        `
+        SELECT
+            notification_id,
+            tenant_id,
+            title,
+            message,
+            is_read,
+            created_at
 
-        // Pending Tasks
-        const pending = await pool.query(
-            `
-            SELECT
-                task_name,
-                due_date
-            FROM tasks
-            WHERE tenant_id=$1
-            AND status='Pending'
-            ORDER BY due_date ASC
-            LIMIT 5
-            `,
-            [tenantId]
-        );
+        FROM notifications
 
-        pending.rows.forEach(task => {
+        WHERE tenant_id = $1
 
-            notifications.push({
+        ORDER BY created_at DESC
+        `,
+        [tenantId]
+    );
 
-                type: "task",
+    const unreadResult = await pool.query(
+        `
+        SELECT COUNT(*) AS unread_count
 
-                icon: "🟡",
+        FROM notifications
 
-                message: `${task.task_name} is still pending`,
+        WHERE tenant_id = $1
+        AND is_read = false
+        `,
+        [tenantId]
+    );
 
-                time: task.due_date
+    res.status(200).json({
+        success: true,
+        notifications: result.rows,
+        unread_count:
+            Number(unreadResult.rows[0].unread_count)
+    });
 
-            });
+} catch (err) {
 
-        });
+    console.log("GET NOTIFICATIONS ERROR:", err);
 
-        // Recently Added Projects
-        const projects = await pool.query(
-            `
-            SELECT
-                project_name,
-                start_date
-            FROM projects
-            WHERE tenant_id=$1
-            ORDER BY project_id DESC
-            LIMIT 5
-            `,
-            [tenantId]
-        );
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
 
-        projects.rows.forEach(project => {
+}
 
-            notifications.push({
+};
 
-                type: "project",
+// =======================================
+// Mark One Notification As Read
+// =======================================
+exports.markAsRead = async (req, res) => {
 
-                icon: "📁",
+try {
 
-                message: `New project "${project.project_name}" created`,
+    const tenantId = req.user.tenantId;
+    const { id } = req.params;
 
-                time: project.start_date
+    const result = await pool.query(
+        `
+        UPDATE notifications
 
-            });
+        SET is_read = true
 
-        });
+        WHERE notification_id = $1
+        AND tenant_id = $2
 
-        // Recently Added Employees
-        const employees = await pool.query(
-            `
-            SELECT
-                employee_name,
-                created_at
-            FROM employees
-            WHERE tenant_id=$1
-            ORDER BY employee_id DESC
-            LIMIT 5
-            `,
-            [tenantId]
-        );
+        RETURNING *
+        `,
+        [id, tenantId]
+    );
 
-        employees.rows.forEach(employee => {
+    if (result.rows.length === 0) {
 
-            notifications.push({
-
-                type: "employee",
-
-                icon: "👤",
-
-                message: `${employee.employee_name} joined the company`,
-
-                time: employee.created_at
-
-            });
-
-        });
-
-        notifications.sort(
-            (a, b) => new Date(b.time) - new Date(a.time)
-        );
-
-        res.json({
-
-            success: true,
-
-            count: notifications.length,
-
-            notifications
-
-        });
-
-    }
-
-    catch (err) {
-
-        console.log(err);
-
-        res.status(500).json({
-
+        return res.status(404).json({
             success: false,
-
-            message: err.message
-
+            message: "Notification Not Found"
         });
 
     }
+
+    res.status(200).json({
+        success: true,
+        message: "Notification Marked As Read",
+        notification: result.rows[0]
+    });
+
+} catch (err) {
+
+    console.log("MARK NOTIFICATION ERROR:", err);
+
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
+
+}
+
+};
+
+// =======================================
+// Mark All Notifications As Read
+// =======================================
+exports.markAllAsRead = async (req, res) => {
+
+try {
+
+    const tenantId = req.user.tenantId;
+
+    await pool.query(
+        `
+        UPDATE notifications
+
+        SET is_read = true
+
+        WHERE tenant_id = $1
+        AND is_read = false
+        `,
+        [tenantId]
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "All Notifications Marked As Read"
+    });
+
+} catch (err) {
+
+    console.log("MARK ALL NOTIFICATIONS ERROR:", err);
+
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
+
+}
+
+};
+
+// =======================================
+// Delete Notification
+// =======================================
+exports.deleteNotification = async (req, res) => {
+
+try {
+
+    const tenantId = req.user.tenantId;
+    const { id } = req.params;
+
+    const result = await pool.query(
+        `
+        DELETE FROM notifications
+
+        WHERE notification_id = $1
+        AND tenant_id = $2
+
+        RETURNING *
+        `,
+        [id, tenantId]
+    );
+
+    if (result.rows.length === 0) {
+
+        return res.status(404).json({
+            success: false,
+            message: "Notification Not Found"
+        });
+
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Notification Deleted Successfully"
+    });
+
+} catch (err) {
+
+    console.log("DELETE NOTIFICATION ERROR:", err);
+
+    res.status(500).json({
+        success: false,
+        message: err.message
+    });
+
+}
 
 };

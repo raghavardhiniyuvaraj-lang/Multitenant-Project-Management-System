@@ -1,3 +1,7 @@
+/* ===============================
+   Project Header
+================================ */
+
 .project-header {
     display: flex;
     justify-content: space-between;
@@ -5,12 +9,117 @@
     margin-bottom: 20px;
 }
 
-.table td,
-.table th {
-    vertical-align: middle;
+.project-header h3 {
+    margin: 0;
+    font-weight: 600;
 }
+
+
+/* ===============================
+   Card
+================================ */
 
 .card {
     border-radius: 12px;
-    box-shadow:0 12px 30px rgba(0,0,0,.08);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+
+/* ===============================
+   Table
+================================ */
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+.table th {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.table td {
+    text-align: center;
+}
+
+
+/* ===============================
+   Description
+================================ */
+
+.description-cell {
+    max-width: 250px;
+    min-width: 180px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+
+/* ===============================
+   Action Buttons
+================================ */
+
+.action-btn {
+    margin-right: 5px;
+    margin-bottom: 3px;
+}
+
+
+/* ===============================
+   Responsive
+================================ */
+
+@media (max-width: 768px) {
+
+    .project-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .project-header h3 {
+        text-align: center;
+    }
+
+    .project-header .btn {
+        width: 100%;
+    }
+
+    .card {
+        border-radius: 8px;
+    }
+
+    .table {
+        font-size: 14px;
+    }
+
+    .action-btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+
+}
+
+
+/* ===============================
+   Small Mobile
+================================ */
+
+@media (max-width: 480px) {
+
+    .table {
+        font-size: 13px;
+    }
+
+    .description-cell {
+        min-width: 150px;
+        max-width: 200px;
+    }
+
 }

@@ -26,32 +26,37 @@ function EditDepartmentModal({
 
     const updateDepartment = async () => {
 
-        try {
+    // Validation
+    if (!departmentName.trim()) {
+        toast.error("Department Name is required");
+        return;
+    }
 
-            await api.put(
-                `/departments/${department.department_id}`,
-                {
-                    department_name: departmentName,
-                    description: description
-                }
-            );
+    try {
 
-            toast.success("Department Updated Successfully");
+        await api.put(
+            `/departments/${department.department_id}`,
+            {
+                department_name: departmentName.trim(),
+                description: description.trim()
+            }
+        );
 
-            refresh();
+        toast.success("Department Updated Successfully");
 
-            handleClose();
+        refresh();
+        handleClose();
 
-        } catch (err) {
+    } catch (err) {
 
-            toast.error(
-    err.response?.data?.message || "Something went wrong"
-);
+        toast.error(
+            err.response?.data?.message ||
+            "Failed to update department"
+        );
 
-        }
+    }
 
-    };
-
+};
     return (
 
         <Modal
@@ -82,12 +87,13 @@ function EditDepartmentModal({
 
                         </Form.Label>
 
-                        <Form.Control
-                            value={departmentName}
-                            onChange={(e)=>
-                                setDepartmentName(e.target.value)
-                            }
-                        />
+                       <Form.Control
+    value={departmentName}
+    onChange={(e) =>
+        setDepartmentName(e.target.value)
+    }
+    required
+/>
 
                     </Form.Group>
 

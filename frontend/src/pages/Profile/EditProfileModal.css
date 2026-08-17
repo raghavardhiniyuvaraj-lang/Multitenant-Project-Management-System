@@ -1,0 +1,250 @@
+/* =========================================
+   EDIT PROFILE MODAL
+========================================= */
+
+.edit-profile-modal {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.18);
+}
+
+/* =========================================
+   MODAL HEADER
+========================================= */
+
+.edit-profile-modal .modal-header {
+    background: linear-gradient(
+        135deg,
+        #0d6efd,
+        #6f42c1
+    );
+
+    color: #ffffff;
+
+    border: none;
+
+    padding: 20px 24px;
+}
+
+.edit-profile-modal .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* Close button */
+
+.edit-profile-modal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.edit-profile-modal .btn-close:hover {
+    opacity: 1;
+}
+
+/* =========================================
+   MODAL BODY
+========================================= */
+
+.edit-profile-modal .modal-body {
+    padding: 25px;
+    background: #ffffff;
+}
+
+/* =========================================
+   FORM LABELS
+========================================= */
+
+.edit-profile-modal .form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 7px;
+}
+
+/* =========================================
+   FORM INPUTS
+========================================= */
+
+.edit-profile-modal .form-control {
+    min-height: 46px;
+
+    border: 1px solid #d9dee5;
+
+    border-radius: 10px;
+
+    padding: 11px 14px;
+
+    font-size: 14px;
+
+    color: #333;
+
+    background: #ffffff;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.edit-profile-modal .form-control::placeholder {
+    color: #a0a6ad;
+}
+
+.edit-profile-modal .form-control:hover {
+    border-color: #b8c0ca;
+}
+
+.edit-profile-modal .form-control:focus {
+    border-color: #0d6efd;
+
+    box-shadow:
+        0 0 0 3px rgba(13, 110, 253, 0.12);
+
+    outline: none;
+}
+
+/* =========================================
+   PHONE HELP TEXT
+========================================= */
+
+.edit-profile-modal .form-text {
+    display: block;
+
+    margin-top: 6px;
+
+    font-size: 12px;
+
+    color: #7b8188 !important;
+}
+
+/* =========================================
+   MODAL FOOTER
+========================================= */
+
+.edit-profile-modal .modal-footer {
+    padding: 16px 25px;
+
+    background: #f8f9fa;
+
+    border-top: 1px solid #eeeeee;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.edit-profile-modal .modal-footer .btn {
+    min-width: 125px;
+
+    min-height: 42px;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+/* Cancel */
+
+.edit-profile-modal .modal-footer .btn-secondary {
+    background: #6c757d;
+
+    border-color: #6c757d;
+}
+
+.edit-profile-modal .modal-footer .btn-secondary:hover {
+    background: #5c636a;
+
+    border-color: #5c636a;
+
+    transform: translateY(-1px);
+}
+
+/* Save */
+
+.edit-profile-modal .modal-footer .btn-primary {
+    background: #0d6efd;
+
+    border-color: #0d6efd;
+}
+
+.edit-profile-modal .modal-footer .btn-primary:hover {
+    background: #0b5ed7;
+
+    border-color: #0b5ed7;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 5px 14px rgba(13, 110, 253, 0.25);
+}
+
+/* Disabled */
+
+.edit-profile-modal .modal-footer .btn:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.7;
+
+    transform: none;
+
+    box-shadow: none;
+}
+
+/* =========================================
+   MODAL ANIMATION
+========================================= */
+
+.edit-profile-modal {
+    animation: editProfileModalIn 0.2s ease;
+}
+
+@keyframes editProfileModalIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
+@media (max-width: 576px) {
+
+    .edit-profile-modal .modal-body {
+        padding: 20px;
+    }
+
+    .edit-profile-modal .modal-header {
+        padding: 17px 20px;
+    }
+
+    .edit-profile-modal .modal-footer {
+        padding: 14px 20px;
+
+        display: flex;
+
+        gap: 8px;
+    }
+
+    .edit-profile-modal .modal-footer .btn {
+        min-width: 110px;
+    }
+
+}

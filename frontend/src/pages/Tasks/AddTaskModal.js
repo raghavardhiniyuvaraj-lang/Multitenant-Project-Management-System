@@ -244,12 +244,11 @@ function AddTaskModal({ show, handleClose, refresh }) {
                         <Form.Label>Due Date</Form.Label>
 
                         <Form.Control
-                            type="date"
-                            name="due_date"
-                            value={formData.due_date}
-                            onChange={handleChange}
-                            required
-                        />
+    type="date"
+    name="due_date"
+    value={formData.due_date}
+    onChange={handleChange}
+/>
 
                     </Form.Group>
 

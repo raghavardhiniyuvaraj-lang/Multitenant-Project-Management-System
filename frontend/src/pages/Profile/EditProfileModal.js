@@ -1,136 +1,231 @@
-import { useState, useEffect } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import {
+Modal,
+Button,
+Form,
+Row,
+Col
+} from "react-bootstrap";
 import { toast } from "react-toastify";
-
 import api from "../../services/api";
+import "./EditProfileModal.css";
 
 function EditProfileModal({
-    show,
-    handleClose,
-    user,
-    refresh
+show,
+handleClose,
+user,
+refresh
 }) {
 
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
+const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    phone: ""
+});
 
-    useEffect(() => {
+const [loading, setLoading] = useState(false);
 
-        if (user) {
+useEffect(() => {
 
-            setUsername(user.username || "");
-            setEmail(user.email || "");
-            setPhone(user.phone || "");
+    if (user) {
 
-        }
+        setFormData({
+            username: user.username || "",
+            email: user.email || "",
+            phone: user.phone || ""
+        });
 
-    }, [user]);
+    }
 
-    const handleSubmit = async () => {
+}, [user, show]);
 
-        try {
+const handleChange = (e) => {
 
-            await api.put("/profile", {
-                username,
-                email,
-                phone
-            });
+    setFormData({
+        ...formData,
+        [e.target.name]: e.target.value
+    });
 
-            toast.success(
-                "Profile updated successfully"
-            );
+};
 
-            refresh();
+const handleSubmit = async (e) => {
 
-            handleClose();
+    e.preventDefault();
 
-        } catch (err) {
+    if (!formData.username.trim()) {
 
-            toast.error(
-                err.response?.data?.message ||
-                "Update Failed"
-            );
+        toast.error("Username is required");
+        return;
 
-        }
+    }
 
-    };
+    if (!formData.email.trim()) {
 
-    return (
+        toast.error("Email is required");
+        return;
 
-        <Modal
-            show={show}
-            onHide={handleClose}
-            centered
-        >
+    }
+
+    const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(formData.email)) {
+
+        toast.error("Please enter a valid email address");
+        return;
+
+    }
+
+    if (
+        formData.phone &&
+        !/^[0-9]{10}$/.test(formData.phone)
+    ) {
+
+        toast.error("Phone number must contain 10 digits");
+        return;
+
+    }
+
+    try {
+
+        setLoading(true);
+
+        const res = await api.put(
+            "/profile",
+            {
+                username: formData.username.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim()
+            }
+        );
+
+        toast.success(
+            res.data.message ||
+            "Profile updated successfully"
+        );
+
+        await refresh();
+
+        handleClose();
+
+    }
+
+    catch (err) {
+
+        console.log("Update Profile Error:", err);
+
+        toast.error(
+            err.response?.data?.message ||
+            "Failed to update profile"
+        );
+
+    }
+
+    finally {
+
+        setLoading(false);
+
+    }
+
+};
+
+return (
+
+   <Modal
+    show={show}
+    onHide={handleClose}
+    centered
+    className="edit-profile-modal"
+>
+
+        <Form onSubmit={handleSubmit}>
 
             <Modal.Header closeButton>
 
                 <Modal.Title>
-
-                    Edit Profile
-
+                    ✏️ Edit Profile
                 </Modal.Title>
 
             </Modal.Header>
 
             <Modal.Body>
 
-                <Form>
+                <Row>
 
-                    <Form.Group className="mb-3">
+                    <Col md={12}>
 
-                        <Form.Label>
+                        <Form.Group className="mb-3">
 
-                            Username
+                            <Form.Label>
+                                Username
+                            </Form.Label>
 
-                        </Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="username"
+                                value={formData.username}
+                                onChange={handleChange}
+                                placeholder="Enter username"
+                            />
 
-                        <Form.Control
-                            value={username}
-                            onChange={(e) =>
-                                setUsername(e.target.value)
-                            }
-                        />
+                        </Form.Group>
 
-                    </Form.Group>
+                    </Col>
 
-                    <Form.Group className="mb-3">
+                </Row>
 
-                        <Form.Label>
+                <Row>
 
-                            Email
+                    <Col md={12}>
 
-                        </Form.Label>
+                        <Form.Group className="mb-3">
 
-                        <Form.Control
-                            type="email"
-                            value={email}
-                            onChange={(e) =>
-                                setEmail(e.target.value)
-                            }
-                        />
+                            <Form.Label>
+                                Email
+                            </Form.Label>
 
-                    </Form.Group>
+                            <Form.Control
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Enter email"
+                            />
 
-                    <Form.Group>
+                        </Form.Group>
 
-                        <Form.Label>
+                    </Col>
 
-                            Phone
+                </Row>
 
-                        </Form.Label>
+                <Row>
 
-                        <Form.Control
-                            value={phone}
-                            onChange={(e) =>
-                                setPhone(e.target.value)
-                            }
-                        />
+                    <Col md={12}>
 
-                    </Form.Group>
+                        <Form.Group className="mb-2">
 
-                </Form>
+                            <Form.Label>
+                                Phone Number
+                            </Form.Label>
+
+                            <Form.Control
+                                type="tel"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                placeholder="Enter 10-digit phone number"
+                                maxLength={10}
+                            />
+
+                            <Form.Text className="text-muted">
+                                Enter a valid 10-digit mobile number.
+                            </Form.Text>
+
+                        </Form.Group>
+
+                    </Col>
+
+                </Row>
 
             </Modal.Body>
 
@@ -138,27 +233,32 @@ function EditProfileModal({
 
                 <Button
                     variant="secondary"
+                    type="button"
                     onClick={handleClose}
+                    disabled={loading}
                 >
-
                     Cancel
-
                 </Button>
 
                 <Button
                     variant="primary"
-                    onClick={handleSubmit}
+                    type="submit"
+                    disabled={loading}
                 >
 
-                    Save Changes
+                    {loading
+                        ? "Saving..."
+                        : "Save Changes"}
 
                 </Button>
 
             </Modal.Footer>
 
-        </Modal>
+        </Form>
 
-    );
+    </Modal>
+
+);
 
 }
 

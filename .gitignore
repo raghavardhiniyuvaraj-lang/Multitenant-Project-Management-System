@@ -9,3 +9,4 @@ backend/.env
 backend/uploads/reports
 
 frontend/build
+backend/uploads/company/

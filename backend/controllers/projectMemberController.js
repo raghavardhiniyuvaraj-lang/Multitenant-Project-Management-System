@@ -1,9 +1,12 @@
 const pool = require("../config/db");
 
-// ===============================
+// =======================================
 // Assign Employee to Project
-// ===============================
+// =======================================
 exports.assignMember = async (req, res) => {
+    console.log("========== ASSIGN MEMBER POST ==========");
+    console.log("REQ BODY:", req.body);
+    console.log("REQ USER:", req.user);
 
     try {
 
@@ -17,18 +20,23 @@ exports.assignMember = async (req, res) => {
         } = req.body;
 
         if (!project_id || !employee_id) {
+
             return res.status(400).json({
                 success: false,
                 message: "Project and Employee are required"
             });
+
         }
 
-        // Prevent duplicate assignment
+        // Check duplicate assignment
         const existing = await pool.query(
-            `SELECT * FROM project_members
-             WHERE tenant_id=$1
-             AND project_id=$2
-             AND employee_id=$3`,
+            `
+            SELECT member_id
+            FROM project_members
+            WHERE tenant_id = $1
+            AND project_id = $2
+            AND employee_id = $3
+            `,
             [
                 tenantId,
                 project_id,
@@ -37,14 +45,18 @@ exports.assignMember = async (req, res) => {
         );
 
         if (existing.rows.length > 0) {
+
             return res.status(409).json({
                 success: false,
                 message: "Employee already assigned to this project"
             });
+
         }
 
+        // Insert member
         const result = await pool.query(
-            `INSERT INTO project_members
+            `
+            INSERT INTO project_members
             (
                 tenant_id,
                 project_id,
@@ -52,14 +64,16 @@ exports.assignMember = async (req, res) => {
                 role,
                 assigned_date
             )
-            VALUES($1,$2,$3,$4,$5)
-            RETURNING *`,
+            VALUES
+            ($1, $2, $3, $4, $5)
+            RETURNING *
+            `,
             [
                 tenantId,
                 project_id,
                 employee_id,
-                role,
-                assigned_date
+                role || null,
+                assigned_date || null
             ]
         );
 
@@ -71,7 +85,7 @@ exports.assignMember = async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
+        console.log("ASSIGN MEMBER ERROR:", err);
 
         res.status(500).json({
             success: false,
@@ -82,9 +96,10 @@ exports.assignMember = async (req, res) => {
 
 };
 
-// ===============================
-// Get All Members
-// ===============================
+
+// =======================================
+// Get All Project Members
+// =======================================
 exports.getMembers = async (req, res) => {
 
     try {
@@ -92,28 +107,36 @@ exports.getMembers = async (req, res) => {
         const tenantId = req.user.tenantId;
 
         const result = await pool.query(
-            `SELECT
+            `
+            SELECT
                 pm.member_id,
-                p.project_name,
-                e.employee_name,
+                pm.project_id,
+                pm.employee_id,
                 pm.role,
-                pm.assigned_date
+                pm.assigned_date,
+
+                p.project_name,
+
+                e.employee_name
 
             FROM project_members pm
 
-            JOIN projects p
-            ON pm.project_id = p.project_id
+            INNER JOIN projects p
+                ON pm.project_id = p.project_id
 
-            JOIN employees e
-            ON pm.employee_id = e.employee_id
+            INNER JOIN employees e
+                ON pm.employee_id = e.employee_id
 
-            WHERE pm.tenant_id=$1
+            WHERE pm.tenant_id = $1
 
-            ORDER BY pm.member_id DESC`,
+            ORDER BY pm.member_id DESC
+            `,
             [tenantId]
         );
 
-        res.json({
+        console.log("MEMBERS FOUND:", result.rows);
+
+        res.status(200).json({
             success: true,
             count: result.rows.length,
             members: result.rows
@@ -121,7 +144,7 @@ exports.getMembers = async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
+        console.log("GET MEMBERS ERROR:", err);
 
         res.status(500).json({
             success: false,
@@ -131,13 +154,17 @@ exports.getMembers = async (req, res) => {
     }
 
 };
-// ===============================
+
+
+// =======================================
 // Update Member
-// ===============================
+// =======================================
 exports.updateMember = async (req, res) => {
+
     try {
 
         const tenantId = req.user.tenantId;
+
         const { id } = req.params;
 
         const {
@@ -147,34 +174,79 @@ exports.updateMember = async (req, res) => {
             assigned_date
         } = req.body;
 
+        if (!project_id || !employee_id) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Project and Employee are required"
+            });
+
+        }
+
+        // Prevent duplicate assignment during update
+        const existing = await pool.query(
+            `
+            SELECT member_id
+
+            FROM project_members
+
+            WHERE tenant_id = $1
+            AND project_id = $2
+            AND employee_id = $3
+            AND member_id <> $4
+            `,
+            [
+                tenantId,
+                project_id,
+                employee_id,
+                id
+            ]
+        );
+
+        if (existing.rows.length > 0) {
+
+            return res.status(409).json({
+                success: false,
+                message: "Employee already assigned to this project"
+            });
+
+        }
+
         const result = await pool.query(
-            `UPDATE project_members
-             SET
+            `
+            UPDATE project_members
+
+            SET
                 project_id = $1,
                 employee_id = $2,
                 role = $3,
                 assigned_date = $4
-             WHERE member_id = $5
-             AND tenant_id = $6
-             RETURNING *`,
+
+            WHERE member_id = $5
+            AND tenant_id = $6
+
+            RETURNING *
+            `,
             [
                 project_id,
                 employee_id,
-                role,
-                assigned_date,
+                role || null,
+                assigned_date || null,
                 id,
                 tenantId
             ]
         );
 
         if (result.rows.length === 0) {
+
             return res.status(404).json({
                 success: false,
                 message: "Member Not Found"
             });
+
         }
 
-        res.json({
+        res.status(200).json({
             success: true,
             message: "Member Updated Successfully",
             member: result.rows[0]
@@ -182,7 +254,7 @@ exports.updateMember = async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
+        console.log("UPDATE MEMBER ERROR:", err);
 
         res.status(500).json({
             success: false,
@@ -190,10 +262,13 @@ exports.updateMember = async (req, res) => {
         });
 
     }
+
 };
-// ===============================
+
+
+// =======================================
 // Delete Member
-// ===============================
+// =======================================
 exports.deleteMember = async (req, res) => {
 
     try {
@@ -203,10 +278,14 @@ exports.deleteMember = async (req, res) => {
         const { id } = req.params;
 
         const result = await pool.query(
-            `DELETE FROM project_members
-             WHERE member_id=$1
-             AND tenant_id=$2
-             RETURNING *`,
+            `
+            DELETE FROM project_members
+
+            WHERE member_id = $1
+            AND tenant_id = $2
+
+            RETURNING *
+            `,
             [
                 id,
                 tenantId
@@ -214,20 +293,22 @@ exports.deleteMember = async (req, res) => {
         );
 
         if (result.rows.length === 0) {
+
             return res.status(404).json({
                 success: false,
                 message: "Member Not Found"
             });
+
         }
 
-        res.json({
+        res.status(200).json({
             success: true,
             message: "Member Removed Successfully"
         });
 
     } catch (err) {
 
-        console.log(err);
+        console.log("DELETE MEMBER ERROR:", err);
 
         res.status(500).json({
             success: false,

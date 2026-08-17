@@ -35,10 +35,13 @@ function Projects() {
             setProjects(res.data.projects);
 
         } catch (err) {
+    console.log(err);
 
-            console.log(err);
-
-        }
+    toast.error(
+        err.response?.data?.message ||
+        "Failed to load projects"
+    );
+}
 
     };
 
@@ -128,27 +131,32 @@ function Projects() {
                                    <td className="description-cell">
     {project.description}
 </td>
-                                    <td>
-                                        {new Date(project.start_date).toLocaleDateString()}
-                                    </td>
+                                     <td>
+        {project.start_date
+            ? new Date(project.start_date).toLocaleDateString()
+            : "-"}
+    </td>
 
-                                    <td>
-                                        {new Date(project.end_date).toLocaleDateString()}
-                                    </td>
-
+    <td>
+        {project.end_date
+            ? new Date(project.end_date).toLocaleDateString()
+            : "-"}
+    </td>
                                     <td>
 
     <span
-        className={
-            project.status === "Active"
-                ? "badge bg-success"
-                : "badge bg-danger"
-        }
-    >
-
-        {project.status}
-
-    </span>
+    className={`badge ${
+        project.status === "Active"
+            ? "bg-success"
+            : project.status === "Completed"
+            ? "bg-primary"
+            : project.status === "On Hold"
+            ? "bg-warning text-dark"
+            : "bg-danger"
+    }`}
+>
+    {project.status}
+</span>
 
 </td>
 

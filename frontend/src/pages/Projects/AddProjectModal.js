@@ -16,46 +16,71 @@ function AddProjectModal({ show, handleClose, refresh }) {
 
     const [status, setStatus] = useState("Active");
 
-    const handleSubmit = async () => {
+const handleSubmit = async () => {
 
-        try {
+    // Project name validation
+    if (!projectName.trim()) {
+        toast.error("Project Name is required");
+        return;
+    }
 
-            await api.post("/projects", {
+    // Date validation
+    if (!startDate) {
+        toast.error("Start Date is required");
+        return;
+    }
 
-                project_name: projectName,
+    if (!endDate) {
+        toast.error("End Date is required");
+        return;
+    }
 
-                description,
+    // Start date / End date validation
+    if (new Date(startDate) > new Date(endDate)) {
+        toast.error("End date cannot be before start date");
+        return;
+    }
 
-                start_date: startDate,
+    try {
 
-                end_date: endDate,
+        await api.post("/projects", {
 
-                status
+            project_name: projectName.trim(),
 
-            });
+            description: description.trim(),
 
-            toast.success("Project Added Successfully");
+            start_date: startDate,
 
-            refresh();
+            end_date: endDate,
 
-            handleClose();
+            status
 
-            // Clear Form
-            setProjectName("");
-            setDescription("");
-            setStartDate("");
-            setEndDate("");
-            setStatus("Active");
+        });
 
-        } catch (err) {
+        toast.success("Project Added Successfully");
 
-            toast.error(
-    err.response?.data?.message || "Something went wrong"
-);
+        refresh();
 
-        }
+        handleClose();
 
-    };
+        // Clear Form
+        setProjectName("");
+        setDescription("");
+        setStartDate("");
+        setEndDate("");
+        setStatus("Active");
+
+    } catch (err) {
+
+        toast.error(
+            err.response?.data?.message ||
+            "Something went wrong"
+        );
+
+    }
+
+};
+
 
     return (
 
@@ -88,12 +113,14 @@ function AddProjectModal({ show, handleClose, refresh }) {
                         </Form.Label>
 
                         <Form.Control
-                            value={projectName}
-                            onChange={(e) =>
-                                setProjectName(e.target.value)
-                            }
-                            placeholder="Enter Project Name"
-                        />
+    type="text"
+    value={projectName}
+    onChange={(e) =>
+        setProjectName(e.target.value)
+    }
+    placeholder="Enter Project Name"
+    required
+/>
 
                     </Form.Group>
 

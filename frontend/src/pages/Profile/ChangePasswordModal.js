@@ -1,56 +1,45 @@
 import { useState } from "react";
 import {
-    Modal,
-    Button,
-    Form,
-    InputGroup
+Modal,
+Button,
+Form,
+InputGroup
 } from "react-bootstrap";
 
 import {
-    EyeFill,
-    EyeSlashFill
+EyeFill,
+EyeSlashFill,
+CheckCircleFill,
+XCircleFill
 } from "react-bootstrap-icons";
 
 import { toast } from "react-toastify";
 import api from "../../services/api";
 
 function ChangePasswordModal({
-
-    show,
-    handleClose
-
+show,
+handleClose
 }) {
 
-    const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+});
 
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
+const [showCurrent, setShowCurrent] = useState(false);
+const [showNew, setShowNew] = useState(false);
+const [showConfirm, setShowConfirm] = useState(false);
 
-    });
+const [passwordStrength, setPasswordStrength] = useState("");
 
-    const [showCurrent, setShowCurrent] = useState(false);
-    const [showNew, setShowNew] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [passwordStrength, setPasswordStrength] = useState("");
+const [loading, setLoading] = useState(false);
 
-   const handleChange = (e) => {
+// =====================================
+// Password Strength
+// =====================================
 
-    setFormData({
-
-        ...formData,
-        [e.target.name]: e.target.value
-
-    });
-
-    if (e.target.name === "newPassword") {
-
-        checkPasswordStrength(e.target.value);
-
-    }
-
-};
-    const checkPasswordStrength = (password) => {
+const checkPasswordStrength = (password) => {
 
     let strength = 0;
 
@@ -60,316 +49,617 @@ function ChangePasswordModal({
     if (/[0-9]/.test(password)) strength++;
     if (/[^A-Za-z0-9]/.test(password)) strength++;
 
-    if (strength <= 2)
+    if (!password) {
+        setPasswordStrength("");
+    }
+    else if (strength <= 2) {
         setPasswordStrength("Weak");
-
-    else if (strength <= 4)
+    }
+    else if (strength <= 4) {
         setPasswordStrength("Medium");
-
-    else
+    }
+    else {
         setPasswordStrength("Strong");
+    }
+};
+
+// =====================================
+// Handle Input
+// =====================================
+
+const handleChange = (e) => {
+
+    const {
+        name,
+        value
+    } = e.target;
+
+    setFormData((prev) => ({
+        ...prev,
+        [name]: value
+    }));
+
+    if (name === "newPassword") {
+
+        checkPasswordStrength(value);
+
+    }
 
 };
 
-    const handleSubmit = async () => {
+// =====================================
+// Password Validation
+// =====================================
 
-        if (
-            formData.newPassword !==
-            formData.confirmPassword
-        ) {
+const isPasswordValid = () => {
 
-            toast.error(
-                "New Password and Confirm Password do not match"
-            );
+    const password = formData.newPassword;
 
-            return;
+    return (
+        password.length >= 8 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[0-9]/.test(password) &&
+        /[^A-Za-z0-9]/.test(password)
+    );
 
-        }
+};
 
-        try {
+// =====================================
+// Close + Reset
+// =====================================
 
-            const res = await api.put(
+const closeModal = () => {
 
-                "/profile/change-password",
+    setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
 
-                {
+    setShowCurrent(false);
+    setShowNew(false);
+    setShowConfirm(false);
 
-                    currentPassword:
-                        formData.currentPassword,
+    setPasswordStrength("");
 
-                    newPassword:
-                        formData.newPassword
+    setLoading(false);
 
-                }
+    handleClose();
 
-            );
+};
 
-            toast.success(res.data.message);
+// =====================================
+// Submit
+// =====================================
 
-            setFormData({
+const handleSubmit = async () => {
 
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: ""
+    if (!formData.currentPassword) {
 
-            });
+        toast.error("Please enter your current password");
+        return;
 
-            handleClose();
+    }
 
-        }
+    if (!formData.newPassword) {
 
-        catch (err) {
+        toast.error("Please enter a new password");
+        return;
 
-            toast.error(
+    }
 
-                err.response?.data?.message ||
+    if (!isPasswordValid()) {
 
-                "Failed to change password"
+        toast.error(
+            "Password must contain at least 8 characters, uppercase, lowercase, number and special character"
+        );
 
-            );
+        return;
 
-        }
+    }
 
-    };
+    if (!formData.confirmPassword) {
+
+        toast.error("Please confirm your new password");
+        return;
+
+    }
+
+    if (
+        formData.newPassword !==
+        formData.confirmPassword
+    ) {
+
+        toast.error(
+            "New Password and Confirm Password do not match"
+        );
+
+        return;
+
+    }
+
+    if (
+        formData.currentPassword ===
+        formData.newPassword
+    ) {
+
+        toast.error(
+            "New password must be different from current password"
+        );
+
+        return;
+
+    }
+
+    try {
+
+        setLoading(true);
+
+        const res = await api.put(
+            "/profile/change-password",
+            {
+                currentPassword:
+                    formData.currentPassword,
+
+                newPassword:
+                    formData.newPassword
+            }
+        );
+
+        toast.success(
+            res.data.message ||
+            "Password changed successfully"
+        );
+
+        closeModal();
+
+    }
+    catch (err) {
+
+        console.log(
+            "Change Password Error:",
+            err
+        );
+
+        toast.error(
+            err.response?.data?.message ||
+            "Failed to change password"
+        );
+
+        setLoading(false);
+
+    }
+
+};
+
+// =====================================
+// Strength Color
+// =====================================
+
+const getStrengthClass = () => {
+
+    if (passwordStrength === "Weak")
+        return "text-danger";
+
+    if (passwordStrength === "Medium")
+        return "text-warning";
+
+    if (passwordStrength === "Strong")
+        return "text-success";
+
+    return "";
+
+};
+
+const getProgressWidth = () => {
+
+    if (passwordStrength === "Weak")
+        return "33%";
+
+    if (passwordStrength === "Medium")
+        return "66%";
+
+    if (passwordStrength === "Strong")
+        return "100%";
+
+    return "0%";
+
+};
+
+// =====================================
+// Requirement Helper
+// =====================================
+
+const Requirement = ({
+    valid,
+    children
+}) => {
 
     return (
 
-        <Modal
-            show={show}
-            onHide={handleClose}
-            centered
-        >
-
-            <Modal.Header closeButton>
-
-                <Modal.Title>
-
-                    🔒 Change Password
-
-                </Modal.Title>
-
-            </Modal.Header>
-
-            <Modal.Body>
-
-                {/* Current Password */}
-
-                <Form.Group className="mb-3">
-
-                    <Form.Label>
-
-                        Current Password
-
-                    </Form.Label>
-
-                    <InputGroup>
-
-                        <Form.Control
-
-                            type={
-                                showCurrent
-                                    ? "text"
-                                    : "password"
-                            }
-
-                            name="currentPassword"
-
-                            value={formData.currentPassword}
-
-                            onChange={handleChange}
-
-                        />
-
-                        <Button
-                            variant="outline-secondary"
-                            onClick={() =>
-                                setShowCurrent(!showCurrent)
-                            }
-                        >
-
-                            {showCurrent
-                                ? <EyeSlashFill />
-                                : <EyeFill />}
-
-                        </Button>
-
-                    </InputGroup>
-
-                </Form.Group>
-
-                {/* New Password */}
-
-                <Form.Group className="mb-3">
-
-                    <Form.Label>
-
-                        New Password
-
-                    </Form.Label>
-
-                    <InputGroup>
-
-                        <Form.Control
-
-                            type={
-                                showNew
-                                    ? "text"
-                                    : "password"
-                            }
-
-                            name="newPassword"
-
-                            value={formData.newPassword}
-
-                            onChange={handleChange}
-
-                        />
-
-                        <Button
-                            variant="outline-secondary"
-                            onClick={() =>
-                                setShowNew(!showNew)
-                            }
-                        >
-
-                            {showNew
-                                ? <EyeSlashFill />
-                                : <EyeFill />}
-
-                        </Button>
-
-                    </InputGroup>
-
-                </Form.Group>
-
-                {formData.newPassword && (
-
-    <div className="mt-3">
-
-        <small className="fw-bold">
-
-            Password Strength :
-            <span
-                className={
-                    passwordStrength === "Weak"
-                        ? "text-danger"
-                        : passwordStrength === "Medium"
-                        ? "text-warning"
-                        : "text-success"
-                }
-            >
-                {" "}
-                {passwordStrength}
-            </span>
-
-        </small>
-
         <div
-            className="progress mt-2"
-            style={{ height: "8px" }}
+            className={
+                valid
+                    ? "text-success"
+                    : "text-muted"
+            }
+            style={{
+                fontSize: "13px"
+            }}
         >
 
-            <div
+            {valid ? (
+                <CheckCircleFill className="me-1" />
+            ) : (
+                <XCircleFill className="me-1" />
+            )}
 
-                className={
-                    passwordStrength === "Weak"
-                        ? "progress-bar bg-danger"
-                        : passwordStrength === "Medium"
-                        ? "progress-bar bg-warning"
-                        : "progress-bar bg-success"
-                }
-
-                role="progressbar"
-
-                style={{
-                    width:
-                        passwordStrength === "Weak"
-                            ? "33%"
-                            : passwordStrength === "Medium"
-                            ? "66%"
-                            : "100%"
-                }}
-
-            ></div>
+            {children}
 
         </div>
 
-    </div>
+    );
 
-)}
-                {/* Confirm Password */}
+};
 
-                <Form.Group>
+return (
 
-                    <Form.Label>
+    <Modal
+        show={show}
+        onHide={closeModal}
+        centered
+        backdrop="static"
+    >
 
-                        Confirm Password
+        <Modal.Header closeButton>
 
-                    </Form.Label>
+            <Modal.Title>
+                🔒 Change Password
+            </Modal.Title>
 
-                    <InputGroup>
+        </Modal.Header>
 
-                        <Form.Control
+        <Modal.Body>
 
-                            type={
-                                showConfirm
-                                    ? "text"
-                                    : "password"
-                            }
+            {/* =========================
+                CURRENT PASSWORD
+            ========================= */}
 
-                            name="confirmPassword"
+            <Form.Group className="mb-3">
 
-                            value={formData.confirmPassword}
+                <Form.Label>
+                    Current Password
+                </Form.Label>
 
-                            onChange={handleChange}
+                <InputGroup>
 
-                        />
+                    <Form.Control
+                        type={
+                            showCurrent
+                                ? "text"
+                                : "password"
+                        }
+                        name="currentPassword"
+                        value={
+                            formData.currentPassword
+                        }
+                        onChange={handleChange}
+                        placeholder="Enter current password"
+                        disabled={loading}
+                    />
 
-                        <Button
-                            variant="outline-secondary"
-                            onClick={() =>
-                                setShowConfirm(!showConfirm)
+                    <Button
+                        type="button"
+                        variant="outline-secondary"
+                        onClick={() =>
+                            setShowCurrent(
+                                !showCurrent
+                            )
+                        }
+                        disabled={loading}
+                        aria-label={
+                            showCurrent
+                                ? "Hide password"
+                                : "Show password"
+                        }
+                    >
+
+                        {showCurrent ? (
+                            <EyeSlashFill />
+                        ) : (
+                            <EyeFill />
+                        )}
+
+                    </Button>
+
+                </InputGroup>
+
+            </Form.Group>
+
+
+            {/* =========================
+                NEW PASSWORD
+            ========================= */}
+
+            <Form.Group className="mb-3">
+
+                <Form.Label>
+                    New Password
+                </Form.Label>
+
+                <InputGroup>
+
+                    <Form.Control
+                        type={
+                            showNew
+                                ? "text"
+                                : "password"
+                        }
+                        name="newPassword"
+                        value={
+                            formData.newPassword
+                        }
+                        onChange={handleChange}
+                        placeholder="Enter new password"
+                        disabled={loading}
+                    />
+
+                    <Button
+                        type="button"
+                        variant="outline-secondary"
+                        onClick={() =>
+                            setShowNew(
+                                !showNew
+                            )
+                        }
+                        disabled={loading}
+                        aria-label={
+                            showNew
+                                ? "Hide password"
+                                : "Show password"
+                        }
+                    >
+
+                        {showNew ? (
+                            <EyeSlashFill />
+                        ) : (
+                            <EyeFill />
+                        )}
+
+                    </Button>
+
+                </InputGroup>
+
+            </Form.Group>
+
+
+            {/* =========================
+                PASSWORD STRENGTH
+            ========================= */}
+
+            {formData.newPassword && (
+
+                <div className="mb-3">
+
+                    <div className="d-flex justify-content-between">
+
+                        <small className="fw-semibold">
+
+                            Password Strength
+
+                        </small>
+
+                        <small
+                            className={
+                                `fw-bold ${getStrengthClass()}`
                             }
                         >
 
-                            {showConfirm
-                                ? <EyeSlashFill />
-                                : <EyeFill />}
+                            {passwordStrength}
 
-                        </Button>
+                        </small>
 
-                    </InputGroup>
+                    </div>
 
-                </Form.Group>
+                    <div
+                        className="progress mt-2"
+                        style={{
+                            height: "7px"
+                        }}
+                    >
 
-            </Modal.Body>
+                        <div
+                            className={
+                                passwordStrength === "Weak"
+                                    ? "progress-bar bg-danger"
+                                    : passwordStrength === "Medium"
+                                    ? "progress-bar bg-warning"
+                                    : "progress-bar bg-success"
+                            }
+                            role="progressbar"
+                            style={{
+                                width:
+                                    getProgressWidth()
+                            }}
+                        />
 
-            <Modal.Footer>
+                    </div>
 
-                <Button
-                    variant="secondary"
-                    onClick={handleClose}
-                >
+                    <div className="mt-2">
 
-                    Cancel
+                        <Requirement
+                            valid={
+                                formData.newPassword.length >= 8
+                            }
+                        >
+                            At least 8 characters
+                        </Requirement>
 
-                </Button>
+                        <Requirement
+                            valid={
+                                /[A-Z]/.test(
+                                    formData.newPassword
+                                )
+                            }
+                        >
+                            One uppercase letter
+                        </Requirement>
 
-                <Button
-                    variant="primary"
-                    onClick={handleSubmit}
-                >
+                        <Requirement
+                            valid={
+                                /[a-z]/.test(
+                                    formData.newPassword
+                                )
+                            }
+                        >
+                            One lowercase letter
+                        </Requirement>
 
-                    Change Password
+                        <Requirement
+                            valid={
+                                /[0-9]/.test(
+                                    formData.newPassword
+                                )
+                            }
+                        >
+                            One number
+                        </Requirement>
 
-                </Button>
+                        <Requirement
+                            valid={
+                                /[^A-Za-z0-9]/.test(
+                                    formData.newPassword
+                                )
+                            }
+                        >
+                            One special character
+                        </Requirement>
 
-            </Modal.Footer>
+                    </div>
 
-        </Modal>
+                </div>
 
-    );
+            )}
 
+
+            {/* =========================
+                CONFIRM PASSWORD
+            ========================= */}
+
+            <Form.Group>
+
+                <Form.Label>
+                    Confirm New Password
+                </Form.Label>
+
+                <InputGroup>
+
+                    <Form.Control
+                        type={
+                            showConfirm
+                                ? "text"
+                                : "password"
+                        }
+                        name="confirmPassword"
+                        value={
+                            formData.confirmPassword
+                        }
+                        onChange={handleChange}
+                        placeholder="Re-enter new password"
+                        disabled={loading}
+                        isInvalid={
+                            formData.confirmPassword.length > 0 &&
+                            formData.newPassword !==
+                            formData.confirmPassword
+                        }
+                        isValid={
+                            formData.confirmPassword.length > 0 &&
+                            formData.newPassword ===
+                            formData.confirmPassword
+                        }
+                    />
+
+                    <Button
+                        type="button"
+                        variant="outline-secondary"
+                        onClick={() =>
+                            setShowConfirm(
+                                !showConfirm
+                            )
+                        }
+                        disabled={loading}
+                        aria-label={
+                            showConfirm
+                                ? "Hide password"
+                                : "Show password"
+                        }
+                    >
+
+                        {showConfirm ? (
+                            <EyeSlashFill />
+                        ) : (
+                            <EyeFill />
+                        )}
+
+                    </Button>
+
+                </InputGroup>
+
+                {formData.confirmPassword &&
+                    formData.newPassword !==
+                    formData.confirmPassword && (
+
+                        <Form.Text className="text-danger">
+
+                            Passwords do not match.
+
+                        </Form.Text>
+
+                    )}
+
+            </Form.Group>
+
+        </Modal.Body>
+
+        <Modal.Footer>
+
+            <Button
+                variant="secondary"
+                onClick={closeModal}
+                disabled={loading}
+            >
+                Cancel
+            </Button>
+
+            <Button
+                variant="primary"
+                onClick={handleSubmit}
+                disabled={loading}
+            >
+
+                {loading ? (
+                    <>
+                        <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                        />
+
+                        Changing...
+
+                    </>
+                ) : (
+                    "Change Password"
+                )}
+
+            </Button>
+
+        </Modal.Footer>
+
+    </Modal>
+
+);
 }
 
 export default ChangePasswordModal;

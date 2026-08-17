@@ -99,7 +99,8 @@ function Employees() {
 
                     </div>
 
-                    <Table striped bordered hover>
+                    <div className="table-responsive">
+    <Table striped bordered hover>
 
                         <thead>
 
@@ -188,6 +189,7 @@ function Employees() {
                         </tbody>
 
                     </Table>
+                    </div>
 
                 </Card.Body>
 

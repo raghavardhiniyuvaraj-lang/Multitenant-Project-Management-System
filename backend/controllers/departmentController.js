@@ -110,19 +110,50 @@ exports.updateDepartment = async (req, res) => {
         const { id } = req.params;
         const { department_name, description } = req.body;
 
+        // Validation
+        if (!department_name || !department_name.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Department Name is required"
+            });
+        }
+
         const tenantId = req.user.tenantId;
 
+        // Check duplicate department name
+        // Exclude the department currently being edited
+        const duplicate = await pool.query(
+            `SELECT department_id
+             FROM departments
+             WHERE tenant_id=$1
+             AND LOWER(department_name)=LOWER($2)
+             AND department_id<>$3`,
+            [
+                tenantId,
+                department_name.trim(),
+                id
+            ]
+        );
+
+        if (duplicate.rows.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Department already exists"
+            });
+        }
+
+        // Update department
         const result = await pool.query(
             `UPDATE departments
-            SET
+             SET
                 department_name=$1,
                 description=$2
-            WHERE department_id=$3
-            AND tenant_id=$4
-            RETURNING *`,
+             WHERE department_id=$3
+             AND tenant_id=$4
+             RETURNING *`,
             [
-                department_name,
-                description,
+                department_name.trim(),
+                description ? description.trim() : null,
                 id,
                 tenantId
             ]
@@ -143,17 +174,19 @@ exports.updateDepartment = async (req, res) => {
 
     } catch (error) {
 
+        console.log("========== UPDATE DEPARTMENT ERROR ==========");
         console.log(error);
+        console.log(error.message);
+        console.log(error.detail);
 
         res.status(500).json({
             success: false,
-            message: "Internal Server Error"
+            message: error.message
         });
 
     }
 
 };
-
 // ===============================
 // Delete Department
 // ===============================

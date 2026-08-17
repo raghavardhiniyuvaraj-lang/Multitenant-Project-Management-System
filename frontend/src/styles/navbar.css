@@ -316,3 +316,192 @@
     color:#888;
 
 }
+/* =========================================
+NOTIFICATION HEADER
+========================================= */
+
+.notification-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 10px 14px;
+min-width: 330px;
+}
+
+.notification-header div {
+display: flex;
+flex-direction: column;
+gap: 2px;
+}
+
+.notification-header strong {
+font-size: 15px;
+color: #212529;
+}
+
+.notification-header small {
+font-size: 12px;
+color: #6c757d;
+}
+
+/* =========================================
+MARK ALL AS READ
+========================================= */
+
+.mark-all-read-btn {
+border: none;
+background: transparent;
+color: #0d6efd;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+padding: 4px 6px;
+}
+
+.mark-all-read-btn:hover {
+color: #0a58ca;
+text-decoration: underline;
+}
+
+/* =========================================
+NOTIFICATION ITEM
+========================================= */
+
+.notification-item {
+padding: 11px 14px !important;
+white-space: normal !important;
+transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+background: #f5f8fc !important;
+}
+
+.notification-item.unread {
+background: #f8fbff;
+}
+
+.notification-item.read {
+background: #ffffff;
+opacity: 0.72;
+}
+
+/* =========================================
+NOTIFICATION CONTENT
+========================================= */
+
+.notification-content {
+display: flex;
+align-items: flex-start;
+gap: 10px;
+width: 100%;
+}
+
+.notification-icon {
+width: 34px;
+height: 34px;
+min-width: 34px;
+
+display: flex;
+align-items: center;
+justify-content: center;
+
+background: #f1f5f9;
+border-radius: 50%;
+
+font-size: 16px;
+
+}
+
+.notification-text {
+flex: 1;
+min-width: 0;
+}
+
+.notification-message {
+color: #212529;
+font-size: 13px;
+line-height: 1.4;
+margin-bottom: 3px;
+}
+
+.notification-text small {
+font-size: 11px;
+}
+
+/* =========================================
+UNREAD DOT
+========================================= */
+
+.unread-dot {
+width: 8px;
+height: 8px;
+
+min-width: 8px;
+
+background: #0d6efd;
+
+border-radius: 50%;
+
+margin-top: 6px;
+
+}
+
+/* =========================================
+EMPTY NOTIFICATIONS
+========================================= */
+
+.no-notifications {
+text-align: center;
+padding: 30px 15px;
+color: #6c757d;
+}
+
+.notification-empty-icon {
+font-size: 28px;
+margin-bottom: 8px;
+opacity: 0.5;
+}
+
+.no-notifications p {
+margin: 0;
+font-size: 13px;
+}
+
+/* =========================================
+NOTIFICATION MENU
+========================================= */
+
+.notification-menu {
+width: 380px;
+max-width: 90vw;
+padding: 0;
+border: none;
+border-radius: 12px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+overflow: hidden;
+}
+
+.notification-menu .dropdown-divider {
+margin: 0;
+}
+
+/* =========================================
+MOBILE
+========================================= */
+
+@media (max-width: 576px) {
+
+.notification-menu {
+    width: 320px;
+}
+
+.notification-header {
+    min-width: auto;
+}
+
+.notification-message {
+    font-size: 12px;
+}
+
+}

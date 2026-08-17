@@ -1,35 +1,122 @@
-/* Page Header */
+/* ===============================
+   Department Page Header
+================================ */
+
 .department-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    gap: 15px;
 }
 
-/* Card */
+.department-header h3 {
+    margin: 0;
+    font-weight: 600;
+}
+
+
+/* ===============================
+   Department Card
+================================ */
+
 .card {
     border-radius: 12px;
-    box-shadow:0 12px 30px rgba(0,0,0,.08);
+    border: none;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
-/* Table */
+
+/* ===============================
+   Responsive Table
+================================ */
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    min-width: 750px;
+    margin-bottom: 0;
+}
+
 .table th {
-    background-color:var(--primary-color);
+    background: var(--primary-color);
     color: white;
     text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
 }
 
 .table td {
     vertical-align: middle;
 }
 
-/* Buttons */
-.btn-warning,
-.btn-danger {
+
+/* ===============================
+   Table Hover
+================================ */
+
+.table tbody tr:hover {
+    background: #f5f5f5;
+    transition: 0.3s;
+}
+
+
+/* ===============================
+   Action Buttons
+================================ */
+
+.action-btn {
+    white-space: nowrap;
     margin-right: 5px;
 }
 
-/* Page Title */
-h3 {
-    font-weight: 600;
+
+/* ===============================
+   Tablet
+================================ */
+
+@media (max-width: 768px) {
+
+    .department-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .department-header h3 {
+        font-size: 22px;
+    }
+
+    .department-header button {
+        width: 100%;
+    }
+
+    .card {
+        border-radius: 10px;
+    }
+
+}
+
+
+/* ===============================
+   Mobile
+================================ */
+
+@media (max-width: 576px) {
+
+    .department-header h3 {
+        font-size: 20px;
+    }
+
+    .card-body {
+        padding: 12px;
+    }
+
+    .table {
+        min-width: 700px;
+    }
+
 }

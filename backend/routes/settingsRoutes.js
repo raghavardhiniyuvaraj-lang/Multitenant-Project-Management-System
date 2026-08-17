@@ -3,16 +3,11 @@ const express = require("express");
 const router = express.Router();
 
 const auth = require("../middleware/auth");
-
-// We will create this middleware in the next step
 const upload = require("../middleware/uploadCompanyLogo");
 
 const {
-
     getSettings,
-
     saveSettings
-
 } = require("../controllers/settingsController");
 
 
@@ -21,13 +16,9 @@ const {
 // ==============================
 
 router.get(
-
     "/",
-
     auth,
-
     getSettings
-
 );
 
 
@@ -36,15 +27,11 @@ router.get(
 // ==============================
 
 router.post(
-
     "/",
-
     auth,
-
     upload.single("company_logo"),
-
     saveSettings
-
 );
+
 
 module.exports = router;

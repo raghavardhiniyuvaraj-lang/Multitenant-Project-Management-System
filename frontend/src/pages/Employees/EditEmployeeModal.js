@@ -59,36 +59,55 @@ function EditEmployeeModal({
 
     const handleSubmit = async () => {
 
-        try {
+    // Validation
+    if (!departmentId) {
+        toast.error("Please select a department");
+        return;
+    }
 
-            await api.put(`/employees/${employee.employee_id}`, {
+    if (!employeeName.trim()) {
+        toast.error("Employee name is required");
+        return;
+    }
 
-                department_id: departmentId,
-                employee_name: employeeName,
-                email,
-                phone,
-                designation,
-                salary
+    if (!email.trim()) {
+        toast.error("Email is required");
+        return;
+    }
 
-            });
+    if (salary !== "" && Number(salary) < 0) {
+        toast.error("Salary cannot be negative");
+        return;
+    }
 
-            toast.success("Employee Updated Successfully");
+    try {
 
-            refresh();
+        await api.put(`/employees/${employee.employee_id}`, {
 
-            handleClose();
+            department_id: departmentId,
+            employee_name: employeeName.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            designation: designation.trim(),
+            salary: salary || null
 
-        } catch (err) {
+        });
 
-            alert(
-                err.response?.data?.message ||
-                "Update Failed"
-            );
+        toast.success("Employee Updated Successfully");
 
-        }
+        refresh();
+        handleClose();
 
-    };
+    } catch (err) {
 
+        toast.error(
+            err.response?.data?.message ||
+            "Update Failed"
+        );
+
+    }
+
+};
     return (
 
         <Modal show={show} onHide={handleClose}>
@@ -106,11 +125,10 @@ function EditEmployeeModal({
                         <Form.Label>Department</Form.Label>
 
                         <Form.Select
-                            value={departmentId}
-                            onChange={(e) =>
-                                setDepartmentId(e.target.value)
-                            }
-                        >
+    value={departmentId}
+    onChange={(e) => setDepartmentId(e.target.value)}
+    required
+>
 
                             <option value="">
                                 Select Department
@@ -134,25 +152,29 @@ function EditEmployeeModal({
                     <Form.Group className="mb-3">
                         <Form.Label>Employee Name</Form.Label>
                         <Form.Control
-                            value={employeeName}
-                            onChange={(e)=>setEmployeeName(e.target.value)}
-                        />
+    value={employeeName}
+    onChange={(e) => setEmployeeName(e.target.value)}
+    required
+/>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
                         <Form.Label>Email</Form.Label>
                         <Form.Control
-                            value={email}
-                            onChange={(e)=>setEmail(e.target.value)}
-                        />
+    type="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    required
+/>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
                         <Form.Label>Phone</Form.Label>
                         <Form.Control
-                            value={phone}
-                            onChange={(e)=>setPhone(e.target.value)}
-                        />
+    type="tel"
+    value={phone}
+    onChange={(e) => setPhone(e.target.value)}
+/>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
@@ -166,10 +188,11 @@ function EditEmployeeModal({
                     <Form.Group className="mb-3">
                         <Form.Label>Salary</Form.Label>
                         <Form.Control
-                            type="number"
-                            value={salary}
-                            onChange={(e)=>setSalary(e.target.value)}
-                        />
+    type="number"
+    min="0"
+    value={salary}
+    onChange={(e) => setSalary(e.target.value)}
+/>
                     </Form.Group>
 
                 </Form>

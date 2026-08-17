@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { BellFill, Search } from "react-bootstrap-icons";
+
 import {
     Form,
     InputGroup,
     Badge,
-    Dropdown
+    Dropdown,
+    Button
 } from "react-bootstrap";
+
 import { formatDistanceToNow } from "date-fns";
+
 import api from "../services/api";
 import { getUser } from "../utils/auth";
 
@@ -18,49 +22,316 @@ function Navbar() {
 
     const [notifications, setNotifications] = useState([]);
 
+    const [unreadCount, setUnreadCount] = useState(0);
+
     const [search, setSearch] = useState("");
+
+    const [loadingNotifications, setLoadingNotifications] =
+        useState(false);
+
+
+    // =========================================
+    // Load Notifications
+    // =========================================
 
     useEffect(() => {
 
         fetchNotifications();
 
+        // Refresh notifications every 30 seconds
+
+        const interval = setInterval(() => {
+
+            fetchNotifications();
+
+        }, 30000);
+
+
+        return () => {
+
+            clearInterval(interval);
+
+        };
+
     }, []);
+
+
+    // =========================================
+    // Fetch Notifications From Backend
+    // =========================================
 
     const fetchNotifications = async () => {
 
         try {
 
-            const res = await api.get("/notifications");
+            setLoadingNotifications(true);
 
-            setNotifications(res.data.notifications);
+            const res =
+                await api.get("/notifications");
 
-        }
 
-        catch (err) {
+            if (res.data.success) {
 
-            console.log(err);
+                setNotifications(
+                    res.data.notifications || []
+                );
+
+                setUnreadCount(
+                    Number(
+                        res.data.unread_count || 0
+                    )
+                );
+
+            }
+
+        } catch (err) {
+
+            console.log(
+                "Notification Error:",
+                err
+            );
+
+        } finally {
+
+            setLoadingNotifications(false);
 
         }
 
     };
 
+
+    // =========================================
+    // Mark Single Notification As Read
+    // =========================================
+
+    const markAsRead = async (notification) => {
+
+        if (notification.is_read) {
+
+            return;
+
+        }
+
+
+        try {
+
+            await api.put(
+                `/notifications/${notification.notification_id}/read`
+            );
+
+
+            // Update notification locally
+
+            setNotifications((prev) =>
+
+                prev.map((item) =>
+
+                    item.notification_id ===
+                    notification.notification_id
+
+                        ? {
+                            ...item,
+                            is_read: true
+                        }
+
+                        : item
+
+                )
+
+            );
+
+
+            // Decrease unread count
+
+            setUnreadCount((prev) =>
+                Math.max(prev - 1, 0)
+            );
+
+
+        } catch (err) {
+
+            console.log(
+                "Mark Notification Read Error:",
+                err
+            );
+
+        }
+
+    };
+
+
+    // =========================================
+    // Mark All Notifications As Read
+    // =========================================
+
+    const markAllAsRead = async () => {
+
+        if (unreadCount === 0) {
+
+            return;
+
+        }
+
+
+        try {
+
+            await api.put(
+                "/notifications/read-all"
+            );
+
+
+            // Update UI
+
+            setNotifications((prev) =>
+
+                prev.map((item) => ({
+
+                    ...item,
+
+                    is_read: true
+
+                }))
+
+            );
+
+
+            setUnreadCount(0);
+
+
+        } catch (err) {
+
+            console.log(
+                "Mark All Notifications Error:",
+                err
+            );
+
+        }
+
+    };
+
+
+    // =========================================
+    // Delete Notification
+    // =========================================
+
+    const deleteNotification = async (
+        notificationId
+    ) => {
+
+        try {
+
+            const notification =
+                notifications.find(
+                    (item) =>
+                        item.notification_id ===
+                        notificationId
+                );
+
+
+            await api.delete(
+                `/notifications/${notificationId}`
+            );
+
+
+            // Remove notification
+
+            setNotifications((prev) =>
+
+                prev.filter(
+                    (item) =>
+                        item.notification_id !==
+                        notificationId
+                )
+
+            );
+
+
+            // If it was unread,
+            // decrease unread count
+
+            if (
+                notification &&
+                !notification.is_read
+            ) {
+
+                setUnreadCount((prev) =>
+                    Math.max(prev - 1, 0)
+                );
+
+            }
+
+
+        } catch (err) {
+
+            console.log(
+                "Delete Notification Error:",
+                err
+            );
+
+        }
+
+    };
+
+
+    // =========================================
+    // Format Notification Time
+    // =========================================
+
+    const formatNotificationTime = (date) => {
+
+        if (!date) {
+
+            return "Recently";
+
+        }
+
+
+        try {
+
+            return formatDistanceToNow(
+                new Date(date),
+                {
+                    addSuffix: true
+                }
+            );
+
+        } catch (err) {
+
+            return "Recently";
+
+        }
+
+    };
+
+
+    // =========================================
+    // Render
+    // =========================================
+
     return (
 
         <div className="navbar-custom">
 
-            {/* Left */}
+
+            {/* ================================= */}
+            {/* LEFT */}
+            {/* ================================= */}
 
             <div className="navbar-left">
 
                 <h4 className="navbar-title">
 
-                    Multi Tenant Project Management System
+                    Multi Tenant Project
+                    Management System
 
                 </h4>
 
             </div>
 
-            {/* Search */}
+
+            {/* ================================= */}
+            {/* SEARCH */}
+            {/* ================================= */}
 
             <div className="navbar-search">
 
@@ -72,155 +343,398 @@ function Navbar() {
 
                     </InputGroup.Text>
 
+
                     <Form.Control
+
                         type="text"
+
                         placeholder="Search..."
+
                         value={search}
+
                         onChange={(e) =>
                             setSearch(e.target.value)
                         }
+
                     />
 
                 </InputGroup>
 
             </div>
 
-            {/* Right */}
+
+            {/* ================================= */}
+            {/* RIGHT */}
+            {/* ================================= */}
 
             <div className="navbar-right">
 
-                {/* Notification Bell */}
+
+                {/* ================================= */}
+                {/* NOTIFICATIONS */}
+                {/* ================================= */}
 
                 <Dropdown align="end">
 
+
                     <Dropdown.Toggle
+
                         variant="light"
+
                         className="notification-toggle"
+
                     >
 
                         <BellFill size={22} />
 
-                        <Badge
-                            bg="danger"
-                            pill
-                            className="notification-badge"
-                        >
 
-                            {notifications.length}
+                        {/* Unread Badge */}
 
-                        </Badge>
+                        {unreadCount > 0 && (
+
+                            <Badge
+
+                                bg="danger"
+
+                                pill
+
+                                className="notification-badge"
+
+                            >
+
+                                {unreadCount > 99
+                                    ? "99+"
+                                    : unreadCount}
+
+                            </Badge>
+
+                        )}
 
                     </Dropdown.Toggle>
 
+
+                    {/* ================================= */}
+                    {/* NOTIFICATION MENU */}
+                    {/* ================================= */}
+
                     <Dropdown.Menu
+
                         className="notification-menu"
+
                     >
 
-                        <Dropdown.Header>
 
-                            🔔 Notifications
+                        {/* ================================= */}
+                        {/* HEADER */}
+                        {/* ================================= */}
 
-                        </Dropdown.Header>
+                        <div className="notification-header">
 
-                        {
 
-                            notifications.length === 0 ?
+                            <div>
 
-                            (
+                                <strong>
 
-                                <Dropdown.Item>
+                                    🔔 Notifications
 
-                                    No Notifications
+                                </strong>
 
-                                </Dropdown.Item>
+
+                                <small>
+
+                                    {unreadCount > 0
+
+                                        ? `${unreadCount} unread notification${unreadCount > 1
+                                            ? "s"
+                                            : ""
+                                        }`
+
+                                        : "All notifications are read"
+
+                                    }
+
+                                </small>
+
+                            </div>
+
+
+                            {/* Mark All */}
+
+                            {unreadCount > 0 && (
+
+                                <button
+
+                                    type="button"
+
+                                    className="mark-all-read-btn"
+
+                                    onClick={
+                                        markAllAsRead
+                                    }
+
+                                >
+
+                                    Mark all as read
+
+                                </button>
+
+                            )}
+
+                        </div>
+
+
+                        <Dropdown.Divider />
+
+
+                        {/* ================================= */}
+                        {/* LOADING */}
+                        {/* ================================= */}
+
+                        {loadingNotifications ? (
+
+                            <div className="no-notifications">
+
+                                <div className="notification-empty-icon">
+
+                                    🔔
+
+                                </div>
+
+
+                                <p>
+
+                                    Loading notifications...
+
+                                </p>
+
+                            </div>
+
+
+                        ) : notifications.length === 0 ? (
+
+
+                            /* ================================= */
+                            /* NO NOTIFICATIONS */
+                            /* ================================= */
+
+                            <div className="no-notifications">
+
+                                <div className="notification-empty-icon">
+
+                                    🔔
+
+                                </div>
+
+
+                                <p>
+
+                                    No notifications
+
+                                </p>
+
+                            </div>
+
+
+                        ) : (
+
+
+                            /* ================================= */
+                            /* NOTIFICATION LIST */
+                            /* ================================= */
+
+                            notifications.map(
+                                (item) => (
+
+                                    <Dropdown.Item
+
+                                        key={
+                                            item.notification_id
+                                        }
+
+                                        className={
+                                            `notification-item ${
+                                                item.is_read
+                                                    ? "read"
+                                                    : "unread"
+                                            }`
+                                        }
+
+                                        onClick={() =>
+                                            markAsRead(item)
+                                        }
+
+                                    >
+
+
+                                        <div className="notification-content">
+
+
+                                            {/* ================================= */}
+                                            {/* ICON */}
+                                            {/* ================================= */}
+
+                                            <div className="notification-icon">
+
+                                                <BellFill />
+
+                                            </div>
+
+
+                                            {/* ================================= */}
+                                            {/* MESSAGE */}
+                                            {/* ================================= */}
+
+                                            <div className="notification-text">
+
+
+                                                <div className="notification-message">
+
+                                                    <strong>
+
+                                                        {
+                                                            item.title ||
+                                                            "Notification"
+                                                        }
+
+                                                    </strong>
+
+
+                                                    <br />
+
+
+                                                    {
+
+                                                        item.message
+
+                                                    }
+
+                                                </div>
+
+
+                                                <small className="text-muted">
+
+                                                    {
+
+                                                        formatNotificationTime(
+                                                            item.created_at
+                                                        )
+
+                                                    }
+
+                                                </small>
+
+                                            </div>
+
+
+                                            {/* ================================= */}
+                                            {/* UNREAD DOT */}
+                                            {/* ================================= */}
+
+                                            {!item.is_read && (
+
+                                                <div className="unread-dot">
+
+                                                </div>
+
+                                            )}
+
+
+                                            {/* ================================= */}
+                                            {/* DELETE */}
+                                            {/* ================================= */}
+
+                                            <Button
+
+                                                variant="link"
+
+                                                className="notification-delete-btn"
+
+                                                onClick={(e) => {
+
+                                                    e.stopPropagation();
+
+                                                    deleteNotification(
+                                                        item.notification_id
+                                                    );
+
+                                                }}
+
+                                            >
+
+                                                ×
+
+                                            </Button>
+
+
+                                        </div>
+
+                                    </Dropdown.Item>
+
+                                )
 
                             )
 
-                            :
-
-                            notifications.map((item, index) => (
-
-                                <Dropdown.Item
-                                    key={index}
-                                >
-
-                                    <div>
-
-                                        <strong>
-
-                                            {item.icon}
-
-                                        </strong>
-
-                                        {" "}
-
-                                        {item.message}
-
-                                        <br />
-
-                                       <small className="text-muted">
-
-    {
-
-        formatDistanceToNow(
-            new Date(item.time),
-            {
-                addSuffix: true
-            }
-        )
-
-    }
-
-</small>
-
-                                    </div>
-
-                                </Dropdown.Item>
-
-                            ))
-
-                        }
+                        )}
 
                     </Dropdown.Menu>
 
                 </Dropdown>
 
-                {/* Profile */}
+
+                {/* ================================= */}
+                {/* PROFILE */}
+                {/* ================================= */}
 
                 <Dropdown align="end">
 
+
                     <Dropdown.Toggle
+
                         variant="light"
+
                         className="profile-btn"
+
                     >
+
 
                         <div className="avatar-circle">
 
-                            {
+                            {(
 
-                                (user?.username || "U")
-                                    .charAt(0)
-                                    .toUpperCase()
+                                user?.username ||
 
-                            }
+                                "U"
+
+                            )
+
+                                .charAt(0)
+
+                                .toUpperCase()}
 
                         </div>
 
+
                         <span className="ms-2">
 
-                            {user?.username || "User"}
+                            {user?.username ||
+
+                                "User"}
 
                         </span>
 
+
                     </Dropdown.Toggle>
 
+
                     <Dropdown.Menu>
+
 
                         <Dropdown.Header>
 
                             Welcome
 
                             <br />
+
 
                             <strong>
 
@@ -230,23 +744,40 @@ function Navbar() {
 
                         </Dropdown.Header>
 
+
                         <Dropdown.Divider />
 
+
                         <Dropdown.Item
-    onClick={() => window.location.href = "/profile"}
->
 
-    👤 Profile
+                            onClick={() =>
+                                window.location.href =
+                                "/profile"
+                            }
 
-</Dropdown.Item>
+                        >
 
-                        <Dropdown.Item>
+                            👤 Profile
+
+                        </Dropdown.Item>
+
+
+                        <Dropdown.Item
+
+                            onClick={() =>
+                                window.location.href =
+                                "/settings"
+                            }
+
+                        >
 
                             ⚙ Settings
 
                         </Dropdown.Item>
 
+
                         <Dropdown.Divider />
+
 
                         <Dropdown.Item
 
@@ -254,7 +785,8 @@ function Navbar() {
 
                                 localStorage.clear();
 
-                                window.location.href = "/login";
+                                window.location.href =
+                                    "/login";
 
                             }}
 
@@ -264,9 +796,11 @@ function Navbar() {
 
                         </Dropdown.Item>
 
+
                     </Dropdown.Menu>
 
                 </Dropdown>
+
 
             </div>
 

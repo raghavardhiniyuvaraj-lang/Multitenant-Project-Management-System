@@ -1,132 +1,189 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
+
 import api from "../../services/api";
 import "./Register.css";
 
 function Register() {
+const navigate = useNavigate();
 
-    const navigate = useNavigate();
+const [formData, setFormData] = useState({
+    tenant_name: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+});
 
-    const [formData, setFormData] = useState({
-        tenant_name: "",
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: ""
+const [showPassword, setShowPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+
+const handleChange = (e) => {
+    setFormData({
+        ...formData,
+        [e.target.name]: e.target.value
     });
+};
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
+const handleRegister = async (e) => {
+    e.preventDefault();
 
-    const handleRegister = async (e) => {
+    if (
+        formData.password !==
+        formData.confirmPassword
+    ) {
+        toast.error("Passwords do not match");
+        return;
+    }
 
-        e.preventDefault();
+    try {
+        const res = await api.post(
+            "/auth/register",
+            {
+                tenant_name:
+                    formData.tenant_name,
+                username:
+                    formData.username,
+                email:
+                    formData.email,
+                password:
+                    formData.password
+            }
+        );
 
-        if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match");
-            return;
-        }
+        toast.success(
+            res.data.message ||
+            "Registration Successful"
+        );
 
-        try {
+        navigate("/");
 
-            const res = await api.post("/auth/register", {
-                tenant_name: formData.tenant_name,
-                username: formData.username,
-                email: formData.email,
-                password: formData.password
-            });
+    } catch (err) {
+        toast.error(
+            err.response?.data?.message ||
+            "Registration Failed"
+        );
+    }
+};
 
-            alert(res.data.message);
+return (
+    <div className="register-container">
 
-            navigate("/");
+        <div className="register-card">
 
-        } catch (err) {
+            <h2>
+                Multi Tenant Project Management
+            </h2>
 
-            toast.error(
-    err.response?.data?.message || "Something went wrong"
-);
-        }
+            <p className="register-subtitle">
+                Create your company account
+            </p>
 
-    };
+            <form onSubmit={handleRegister}>
 
-    return (
+                {/* Company Name */}
+                <input
+                    type="text"
+                    name="tenant_name"
+                    placeholder="Company Name"
+                    value={formData.tenant_name}
+                    onChange={handleChange}
+                    required
+                />
 
-        <div className="register-container">
+                {/* Username */}
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                />
 
-            <div className="register-card">
+                {/* Email */}
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                />
 
-                <h2>Multi Tenant Project Management</h2>
+                {/* Password */}
+                <div className="password-wrapper">
 
-                <h4>Create Company Account</h4>
+<input
+    type={showPassword ? "text" : "password"}
+    name="password"
+    placeholder="Password"
+    value={formData.password}
+    onChange={handleChange}
+    required
+/>
 
-                <form onSubmit={handleRegister}>
+<button
+    type="button"
+    className="password-toggle"
+    onClick={() =>
+        setShowPassword(!showPassword)
+    }
+>
+    {showPassword ? "🙈" : "👁️"}
+</button>
 
-                    <input
-                        type="text"
-                        name="tenant_name"
-                        placeholder="Company Name"
-                        value={formData.tenant_name}
-                        onChange={handleChange}
-                        required
-                    />
+</div>
 
-                    <input
-                        type="text"
-                        name="username"
-                        placeholder="Username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        required
-                    />
+                {/* Confirm Password */}
+                <div className="password-wrapper">
 
-                    <input
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                    />
+<input
+    type={
+        showConfirmPassword
+            ? "text"
+            : "password"
+    }
+    name="confirmPassword"
+    placeholder="Confirm Password"
+    value={formData.confirmPassword}
+    onChange={handleChange}
+    required
+/>
 
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                    />
+<button
+    type="button"
+    className="password-toggle"
+    onClick={() =>
+        setShowConfirmPassword(
+            !showConfirmPassword
+        )
+    }
+>
+    {showConfirmPassword ? "🙈" : "👁️"}
+</button>
 
-                    <input
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="Confirm Password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        required
-                    />
+</div>
 
-                    <button type="submit">
-                        Register
-                    </button>
+                <button type="submit">
+                    Create Account
+                </button>
 
-                </form>
+            </form>
 
-                <p className="login-link">
-                    Already have an account?{" "}
-                    <Link to="/">Login</Link>
-                </p>
-
-            </div>
+            <p className="login-link">
+                Already have an account?{" "}
+                <Link to="/">
+                    Sign In
+                </Link>
+            </p>
 
         </div>
 
-    );
+    </div>
+);
 
 }
 

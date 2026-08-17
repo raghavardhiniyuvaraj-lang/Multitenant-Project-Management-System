@@ -6,180 +6,221 @@ import {
     Form,
     Table,
     Row,
-    Col
+    Col,
+    Spinner
 } from "react-bootstrap";
 
 import MainLayout from "../../layouts/MainLayout";
 import api from "../../services/api";
 import { toast } from "react-toastify";
+
 import "./Reports.css";
 
 import "chart.js/auto";
 import { Pie, Bar } from "react-chartjs-2";
 
-
 function Reports() {
 
     const [reportFile, setReportFile] = useState(null);
-
     const [preview, setPreview] = useState([]);
     const [reports, setReports] = useState([]);
+
+    const [loadingReports, setLoadingReports] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [generatingPDF, setGeneratingPDF] = useState(false);
+    const [exportingExcel, setExportingExcel] = useState(false);
+
     const [dashboard, setDashboard] = useState({
-    employees: 0,
-    departments: 0,
-    projects: 0,
-    tasks: 0
-});
-const pieData = {
-    labels: ["Projects", "Tasks"],
-    datasets: [
-        {
-            data: [
-                dashboard.projects,
-                dashboard.tasks
-            ],
-            backgroundColor: [
-                "#0d6efd",
-                "#198754"
-            ]
-        }
-    ]
-};
+        employees: 0,
+        departments: 0,
+        projects: 0,
+        tasks: 0
+    });
 
-const barData = {
-    labels: [
-        "Employees",
-        "Departments"
-    ],
-    datasets: [
-        {
-            label: "Company Data",
-            data: [
-                dashboard.employees,
-                dashboard.departments
-            ],
-            backgroundColor: [
-                "#0d6efd",
-                "#ffc107"
-            ]
-        }
-    ]
-};
+    // ==========================================
+    // Load Dashboard + Reports
+    // ==========================================
 
-useEffect(() => {
+    useEffect(() => {
+        loadDashboard();
+        loadReports();
+    }, []);
 
-    loadDashboard();
+    // ==========================================
+    // Load Dashboard
+    // ==========================================
 
-    loadReports();
-
-}, []);
-
-const loadDashboard = async () => {
-
-    try {
-
-        const res = await api.get("/dashboard");
-
-        setDashboard({
-            employees: res.data.dashboard.employees,
-            departments: res.data.dashboard.departments,
-            projects: res.data.dashboard.projects,
-            tasks: res.data.dashboard.tasks
-        });
-
-    } catch (err) {
-
-        console.log(err);
-
-    }
-
-};
-const loadReports = async () => {
-
-    try {
-
-        const res = await api.get("/reports/history");
-
-        setReports(res.data.reports);
-
-    }
-
-    catch (err) {
-
-        console.log(err);
-
-        toast.error("Failed to Load Reports");
-
-    }
-
-};
-    // ============================
-    // Export Company Data
-    // ============================
-
-    const exportExcel = async () => {
+    const loadDashboard = async () => {
 
         try {
 
-            const res = await api.get(
+            const res = await api.get("/dashboard");
 
-                "/reports/export-excel",
+            const data = res.data.dashboard || {};
 
-                {
+            setDashboard({
+                employees:
+                    Number(
+                        data.total_employees ??
+                        data.employees ??
+                        0
+                    ),
 
-                    responseType: "blob"
+                departments:
+                    Number(
+                        data.total_departments ??
+                        data.departments ??
+                        0
+                    ),
 
-                }
+                projects:
+                    Number(
+                        data.total_projects ??
+                        data.projects ??
+                        0
+                    ),
 
-            );
+                tasks:
+                    Number(
+                        data.total_tasks ??
+                        data.tasks ??
+                        0
+                    )
+            });
 
-            const url = window.URL.createObjectURL(
+        } catch (err) {
 
-                new Blob([res.data])
+            console.log("Dashboard Error:", err);
 
-            );
-
-            const link = document.createElement("a");
-
-            link.href = url;
-
-            link.setAttribute(
-
-                "download",
-
-                "Company_Report.xlsx"
-
-            );
-
-            document.body.appendChild(link);
-
-            link.click();
-
-            link.remove();
-
-            toast.success("Excel Downloaded Successfully");
-
-        }
-
-        catch (err) {
-
-            console.log(err);
-
-            toast.error("Excel Export Failed");
+            toast.error("Failed to Load Dashboard Data");
 
         }
 
     };
 
-    // ============================
+    // ==========================================
+    // Load Report History
+    // ==========================================
+
+    const loadReports = async () => {
+
+        try {
+
+            setLoadingReports(true);
+
+            const res = await api.get("/reports/history");
+
+            setReports(
+                Array.isArray(res.data.reports)
+                    ? res.data.reports
+                    : []
+            );
+
+        } catch (err) {
+
+            console.log("Report History Error:", err);
+
+            toast.error("Failed to Load Reports");
+
+        } finally {
+
+            setLoadingReports(false);
+
+        }
+
+    };
+
+    // ==========================================
+    // Export Excel
+    // ==========================================
+
+    const exportExcel = async () => {
+
+        try {
+
+            setExportingExcel(true);
+
+            const res = await api.get(
+                "/reports/export-excel",
+                {
+                    responseType: "blob"
+                }
+            );
+
+            const blob = new Blob(
+                [res.data],
+                {
+                    type:
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                }
+            );
+
+            const url =
+                window.URL.createObjectURL(blob);
+
+            const link =
+                document.createElement("a");
+
+            link.href = url;
+
+            link.download =
+                "Company_Report.xlsx";
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            document.body.removeChild(link);
+
+            window.URL.revokeObjectURL(url);
+
+            toast.success(
+                "Excel Downloaded Successfully"
+            );
+
+        } catch (err) {
+
+            console.log("Excel Export Error:", err);
+
+            toast.error(
+                "Excel Export Failed"
+            );
+
+        } finally {
+
+            setExportingExcel(false);
+
+        }
+
+    };
+
+    // ==========================================
     // Upload Excel
-    // ============================
+    // ==========================================
 
     const uploadExcel = async () => {
 
         if (!reportFile) {
 
-            toast.warning("Please Select Excel File");
+            toast.warning(
+                "Please Select Excel File"
+            );
+
+            return;
+
+        }
+
+        const fileName =
+            reportFile.name.toLowerCase();
+
+        if (
+            !fileName.endsWith(".xlsx") &&
+            !fileName.endsWith(".xls")
+        ) {
+
+            toast.error(
+                "Please select an Excel file (.xlsx or .xls)"
+            );
 
             return;
 
@@ -187,131 +228,271 @@ const loadReports = async () => {
 
         try {
 
-            const formData = new FormData();
+            setUploading(true);
+
+            const formData =
+                new FormData();
 
             formData.append(
-
                 "report",
-
                 reportFile
-
             );
 
-            console.log(reportFile);
-console.log(reportFile.name);
-console.log(formData.get("report"));
-           
-const res = await api.post(
-    "/reports/upload",
-    formData,
-    {
-        headers: {
-            "Content-Type": "multipart/form-data"
-        }
-    }
-);
+            const res = await api.post(
+                "/reports/upload",
+                formData
+            );
 
-console.log("API Response:");
-console.log(res);
+            toast.success(
+                res.data.message ||
+                "Excel Uploaded Successfully"
+            );
 
-console.log("Response Data:");
-console.log(res.data);
+            setPreview(
+                Array.isArray(res.data.preview)
+                    ? res.data.preview
+                    : []
+            );
 
-toast.success(res.data.message);
+            setReportFile(null);
 
-setPreview(res.data.preview);
-        }
-        catch (err) {
+            const fileInput =
+                document.getElementById(
+                    "reportFileInput"
+                );
 
-            console.log(err);
+            if (fileInput) {
+                fileInput.value = "";
+            }
 
-            toast.error("Upload Failed");
+            loadReports();
+
+        } catch (err) {
+
+            console.log(
+                "Excel Upload Error:",
+                err
+            );
+
+            toast.error(
+                err.response?.data?.message ||
+                "Upload Failed"
+            );
+
+        } finally {
+
+            setUploading(false);
 
         }
 
     };
 
-    // ============================
+    // ==========================================
     // Generate PDF
-    // ============================
+    // ==========================================
 
-   const generatePDF = async () => {
+    const generatePDF = async () => {
 
-    try {
+        try {
 
-        const res = await api.post("/reports/generate");
+            setGeneratingPDF(true);
 
-        toast.success(res.data.message);
+            const res =
+                await api.post(
+                    "/reports/generate"
+                );
 
-        const link = document.createElement("a");
+            toast.success(
+                res.data.message ||
+                "Professional PDF Generated Successfully"
+            );
 
-        link.href = "http://localhost:5000/" + res.data.file;
+            if (res.data.file) {
 
-        link.download = "Company_Report.pdf";
+                const fileName =
+                    res.data.file.split("/").pop();
 
-        document.body.appendChild(link);
+                downloadReport(fileName);
 
-        link.click();
+            }
 
-        link.remove();
+            loadReports();
 
-    }
+        } catch (err) {
 
-    catch (err) {
+            console.log(
+                "PDF Generation Error:",
+                err
+            );
 
-        console.log(err);
+            toast.error(
+                err.response?.data?.message ||
+                "PDF Generation Failed"
+            );
 
-        toast.error("PDF Generation Failed");
+        } finally {
 
-    }
+            setGeneratingPDF(false);
 
-};
-const downloadReport = (fileName) => {
+        }
 
-    const link = document.createElement("a");
+    };
 
-    link.href =
-        "http://localhost:5000/uploads/reports/" + fileName;
+    // ==========================================
+    // Download Report
+    // ==========================================
 
-    link.download = fileName;
+    const downloadReport = async (fileName) => {
 
-    document.body.appendChild(link);
+        try {
 
-    link.click();
+            const res =
+                await api.get(
+                    `/reports/download/${encodeURIComponent(fileName)}`,
+                    {
+                        responseType: "blob"
+                    }
+                );
 
-    link.remove();
+            const blob =
+                new Blob([res.data]);
 
-};
-const deleteReport = async (reportId) => {
+            const url =
+                window.URL.createObjectURL(blob);
 
-    const confirmDelete = window.confirm(
-        "Are you sure you want to delete this report?"
-    );
+            const link =
+                document.createElement("a");
 
-    if (!confirmDelete) return;
+            link.href = url;
 
-    try {
+            link.download = fileName;
 
-        const res = await api.delete(
-            "/reports/" + reportId
-        );
+            document.body.appendChild(link);
 
-        toast.success(res.data.message);
+            link.click();
 
-        // Refresh Report History
-        loadReports();
+            document.body.removeChild(link);
 
-    }
+            window.URL.revokeObjectURL(url);
 
-    catch (err) {
+        } catch (err) {
 
-        console.log(err);
+            console.log(
+                "Download Error:",
+                err
+            );
 
-        toast.error("Delete Failed");
+            toast.error(
+                "Report Download Failed"
+            );
 
-    }
+        }
 
-};
+    };
+
+    // ==========================================
+    // Delete Report
+    // ==========================================
+
+    const deleteReport = async (reportId) => {
+
+        const confirmDelete =
+            window.confirm(
+                "Are you sure you want to delete this report?"
+            );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+
+            const res =
+                await api.delete(
+                    `/reports/${reportId}`
+                );
+
+            toast.success(
+                res.data.message ||
+                "Report deleted successfully"
+            );
+
+            loadReports();
+
+        } catch (err) {
+
+            console.log(
+                "Delete Report Error:",
+                err
+            );
+
+            toast.error(
+                err.response?.data?.message ||
+                "Delete Failed"
+            );
+
+        }
+
+    };
+
+    // ==========================================
+    // Pie Chart
+    // ==========================================
+
+    const pieData = {
+
+        labels: [
+            "Projects",
+            "Tasks"
+        ],
+
+        datasets: [
+            {
+                data: [
+                    dashboard.projects,
+                    dashboard.tasks
+                ],
+
+                backgroundColor: [
+                    "#0d6efd",
+                    "#198754"
+                ],
+
+                borderWidth: 1
+            }
+        ]
+
+    };
+
+    // ==========================================
+    // Bar Chart
+    // ==========================================
+
+    const barData = {
+
+        labels: [
+            "Employees",
+            "Departments"
+        ],
+
+        datasets: [
+            {
+                label: "Company Data",
+
+                data: [
+                    dashboard.employees,
+                    dashboard.departments
+                ],
+
+                backgroundColor: [
+                    "#0d6efd",
+                    "#ffc107"
+                ]
+            }
+        ]
+
+    };
+
     return (
 
         <MainLayout>
@@ -321,99 +502,162 @@ const deleteReport = async (reportId) => {
                 <h2>📊 Reports</h2>
 
                 <p>
-
                     Export Company Data,
-
                     Upload Excel and Generate
-
                     Professional Reports
-
                 </p>
 
             </div>
+
+            {/* ================================= */}
+            {/* SUMMARY CARDS */}
+            {/* ================================= */}
+
             <Row className="mb-4">
 
-    <Col md={3}>
-        <Card className="report-card shadow text-center">
-            <Card.Body>
-                <h5>👨‍💼 Employees</h5>
-                <h2>{dashboard.employees}</h2>
-            </Card.Body>
-        </Card>
-    </Col>
+                <Col md={3} className="mb-3">
 
-    <Col md={3}>
-        <Card className="report-card shadow text-center">
-            <Card.Body>
-                <h5>🏢 Departments</h5>
-                <h2>{dashboard.departments}</h2>
-            </Card.Body>
-        </Card>
-    </Col>
+                    <Card className="report-card shadow text-center">
 
-    <Col md={3}>
-        <Card className="report-card shadow text-center">
-            <Card.Body>
-                <h5>📁 Projects</h5>
-                <h2>{dashboard.projects}</h2>
-            </Card.Body>
-        </Card>
-    </Col>
+                        <Card.Body>
 
-    <Col md={3}>
-        <Card className="report-card shadow text-center">
-            <Card.Body>
-                <h5>✅ Tasks</h5>
-                <h2>{dashboard.tasks}</h2>
-            </Card.Body>
-        </Card>
-    </Col>
+                            <h5>
+                                👨‍💼 Employees
+                            </h5>
 
-</Row>
-<Row className="mb-4">
+                            <h2>
+                                {dashboard.employees}
+                            </h2>
 
-    <Col md={6}>
+                        </Card.Body>
 
-        <Card className="shadow">
+                    </Card>
 
-            <Card.Header>
+                </Col>
 
-                Project & Task Distribution
+                <Col md={3} className="mb-3">
 
-            </Card.Header>
+                    <Card className="report-card shadow text-center">
 
-            <Card.Body>
+                        <Card.Body>
 
-                <Pie data={pieData} />
+                            <h5>
+                                🏢 Departments
+                            </h5>
 
-            </Card.Body>
+                            <h2>
+                                {dashboard.departments}
+                            </h2>
 
-        </Card>
+                        </Card.Body>
 
-    </Col>
+                    </Card>
 
-    <Col md={6}>
+                </Col>
 
-        <Card className="shadow">
+                <Col md={3} className="mb-3">
 
-            <Card.Header>
+                    <Card className="report-card shadow text-center">
 
-                Employee & Department Summary
+                        <Card.Body>
 
-            </Card.Header>
+                            <h5>
+                                📁 Projects
+                            </h5>
 
-            <Card.Body>
+                            <h2>
+                                {dashboard.projects}
+                            </h2>
 
-                <Bar data={barData} />
+                        </Card.Body>
 
-            </Card.Body>
+                    </Card>
 
-        </Card>
+                </Col>
 
-    </Col>
+                <Col md={3} className="mb-3">
 
-</Row>
-            <Card className="shadow">
+                    <Card className="report-card shadow text-center">
+
+                        <Card.Body>
+
+                            <h5>
+                                ✅ Tasks
+                            </h5>
+
+                            <h2>
+                                {dashboard.tasks}
+                            </h2>
+
+                        </Card.Body>
+
+                    </Card>
+
+                </Col>
+
+            </Row>
+
+            {/* ================================= */}
+            {/* CHARTS */}
+            {/* ================================= */}
+
+            <Row className="mb-4">
+
+                <Col md={6} className="mb-3">
+
+                    <Card className="chart-card shadow">
+
+                        <Card.Header>
+                            Project & Task Distribution
+                        </Card.Header>
+
+                        <Card.Body>
+
+                            <Pie
+                                data={pieData}
+                                options={{
+                                    responsive: true,
+                                    maintainAspectRatio: true
+                                }}
+                            />
+
+                        </Card.Body>
+
+                    </Card>
+
+                </Col>
+
+                <Col md={6} className="mb-3">
+
+                    <Card className="chart-card shadow">
+
+                        <Card.Header>
+                            Employee & Department Summary
+                        </Card.Header>
+
+                        <Card.Body>
+
+                            <Bar
+                                data={barData}
+                                options={{
+                                    responsive: true,
+                                    maintainAspectRatio: true
+                                }}
+                            />
+
+                        </Card.Body>
+
+                    </Card>
+
+                </Col>
+
+            </Row>
+
+            {/* ================================= */}
+            {/* EXPORT / UPLOAD */}
+            {/* ================================= */}
+
+            <Card className="shadow mb-4">
 
                 <Card.Body>
 
@@ -422,14 +666,27 @@ const deleteReport = async (reportId) => {
                         <Col>
 
                             <Button
-
-                                className="theme-btn me-3"
-
+                                className="theme-btn"
                                 onClick={exportExcel}
-
+                                disabled={exportingExcel}
                             >
 
-                                📥 Export Company Data (Excel)
+                                {exportingExcel
+                                    ? (
+                                        <>
+                                            <Spinner
+                                                size="sm"
+                                                className="me-2"
+                                            />
+                                            Exporting...
+                                        </>
+                                    )
+                                    : (
+                                        <>
+                                            📥 Export Company Data
+                                            (Excel)
+                                        </>
+                                    )}
 
                             </Button>
 
@@ -446,27 +703,18 @@ const deleteReport = async (reportId) => {
                             <Form.Group>
 
                                 <Form.Label>
-
                                     Choose Excel File
-
                                 </Form.Label>
 
                                 <Form.Control
-
+                                    id="reportFileInput"
                                     type="file"
-
                                     accept=".xlsx,.xls"
-
                                     onChange={(e) =>
-
                                         setReportFile(
-
-                                            e.target.files[0]
-
+                                            e.target.files[0] || null
                                         )
-
                                     }
-
                                 />
 
                             </Form.Group>
@@ -474,22 +722,27 @@ const deleteReport = async (reportId) => {
                         </Col>
 
                         <Col
-
                             md={4}
-
-                            className="d-flex align-items-end"
-
+                            className="d-flex align-items-end mt-3 mt-md-0"
                         >
 
                             <Button
-
                                 className="theme-btn w-100"
-
                                 onClick={uploadExcel}
-
+                                disabled={uploading}
                             >
 
-                                Upload Excel
+                                {uploading
+                                    ? (
+                                        <>
+                                            <Spinner
+                                                size="sm"
+                                                className="me-2"
+                                            />
+                                            Uploading...
+                                        </>
+                                    )
+                                    : "📤 Upload Excel"}
 
                             </Button>
 
@@ -501,93 +754,48 @@ const deleteReport = async (reportId) => {
 
             </Card>
 
-            <br />
+            {/* ================================= */}
+            {/* EXCEL PREVIEW */}
+            {/* ================================= */}
 
-            {
+            {preview.length > 0 && (
 
-                preview.length > 0 &&
-
-                <Card className="shadow">
+                <Card className="shadow mb-4">
 
                     <Card.Header>
-
                         Excel Preview
-
                     </Card.Header>
 
                     <Card.Body>
 
                         <Table
-
                             striped
-
                             bordered
-
                             hover
-
                             responsive
-
                         >
 
                             <tbody>
 
-                                {
+                                {preview.map(
+                                    (row, index) => (
 
-                                    preview.map(
+                                        <tr key={index}>
 
-                                        (
+                                            {row.map(
+                                                (cell, i) => (
 
-                                            row,
+                                                    <td key={i}>
+                                                        {cell}
+                                                    </td>
 
-                                            index
+                                                )
+                                            )}
 
-                                        ) => (
-
-                                            <tr
-
-                                                key={index}
-
-                                            >
-
-                                                {
-
-                                                    row.map(
-
-                                                        (
-
-                                                            cell,
-
-                                                            i
-
-                                                        ) => (
-
-                                                            <td
-
-                                                                key={i}
-
-                                                            >
-
-                                                                {
-
-                                                                    cell
-
-                                                                }
-
-                                                            </td>
-
-                                                        )
-
-                                                    )
-
-                                                }
-
-                                            </tr>
-
-                                        )
+                                        </tr>
 
                                     )
-
-                                }
+                                )}
 
                             </tbody>
 
@@ -597,142 +805,198 @@ const deleteReport = async (reportId) => {
 
                 </Card>
 
-            }
+            )}
 
-            <br />
+            {/* ================================= */}
+            {/* PDF */}
+            {/* ================================= */}
 
-            <div className="text-center">
+            <div className="text-center mb-4">
 
                 <Button
-
                     size="lg"
-
                     className="theme-btn"
-
                     onClick={generatePDF}
-
+                    disabled={generatingPDF}
                 >
 
-                    📄 Generate Professional PDF
+                    {generatingPDF
+                        ? (
+                            <>
+                                <Spinner
+                                    size="sm"
+                                    className="me-2"
+                                />
+                                Generating PDF...
+                            </>
+                        )
+                        : "📄 Generate Professional PDF"}
 
                 </Button>
 
             </div>
-            <br />
 
-<Card className="shadow">
+            {/* ================================= */}
+            {/* REPORT HISTORY */}
+            {/* ================================= */}
 
-    <Card.Header>
+            <Card className="shadow mb-4">
 
-        <h5 className="mb-0">
-            Report History
-        </h5>
+                <Card.Header>
 
-    </Card.Header>
+                    <h5 className="mb-0">
+                        Report History
+                    </h5>
 
-    <Card.Body>
+                </Card.Header>
 
-        <Table
-            striped
-            bordered
-            hover
-            responsive
-        >
+                <Card.Body>
 
-            <thead>
+                    {loadingReports ? (
 
-                <tr>
+                        <div className="text-center p-4">
 
-                    <th>File Name</th>
-                    <th>Type</th>
-                    <th>Created Date</th>
-                    <th>Download</th>
-                    <th>Delete</th>
+                            <Spinner />
 
-                </tr>
+                        </div>
 
-            </thead>
+                    ) : (
 
-            <tbody>
+                        <Table
+                            striped
+                            bordered
+                            hover
+                            responsive
+                        >
 
-                {
+                            <thead>
 
-                    reports.length === 0 ?
+                                <tr>
 
-                    (
+                                    <th>
+                                        File Name
+                                    </th>
 
-                        <tr>
+                                    <th>
+                                        Type
+                                    </th>
 
-                            <td
-                                colSpan="5"
-                                className="text-center"
-                            >
+                                    <th>
+                                        Created Date
+                                    </th>
 
-                                No Reports Found
+                                    <th>
+                                        Download
+                                    </th>
 
-                            </td>
+                                    <th>
+                                        Delete
+                                    </th>
 
-                        </tr>
+                                </tr>
 
-                    )
+                            </thead>
 
-                    :
+                            <tbody>
 
-                    reports.map((report) => (
+                                {reports.length === 0 ? (
 
-                        <tr key={report.report_id}>
+                                    <tr>
 
-                            <td>{report.file_name}</td>
+                                        <td
+                                            colSpan="5"
+                                            className="text-center"
+                                        >
 
-                            <td>{report.report_type}</td>
+                                            No Reports Found
 
-                            <td>
+                                        </td>
 
-                                {new Date(
-                                    report.created_at
-                                ).toLocaleString()}
+                                    </tr>
 
-                            </td>
+                                ) : (
 
-                            <td>
+                                    reports.map(
+                                        (report) => (
 
-                               <Button
-    size="sm"
-    variant="success"
-    onClick={() => downloadReport(report.file_name)}
->
-    Download
-</Button>
+                                            <tr
+                                                key={
+                                                    report.report_id
+                                                }
+                                            >
 
-                            </td>
+                                                <td>
+                                                    {
+                                                        report.file_name
+                                                    }
+                                                </td>
 
-                            <td>
+                                                <td>
+                                                    {
+                                                        report.report_type
+                                                    }
+                                                </td>
 
-                                <Button
-    size="sm"
-    variant="danger"
-    onClick={() =>
-        deleteReport(report.report_id)
-    }
->
-    Delete
-</Button>
+                                                <td>
 
-                            </td>
+                                                    {new Date(
+                                                        report.created_at
+                                                    ).toLocaleString()}
 
-                        </tr>
+                                                </td>
 
-                    ))
+                                                <td>
 
-                }
+                                                    <Button
+                                                        size="sm"
+                                                        variant="success"
+                                                        onClick={() =>
+                                                            downloadReport(
+                                                                report.file_name
+                                                            )
+                                                        }
+                                                    >
 
-            </tbody>
+                                                        Download
 
-        </Table>
+                                                    </Button>
 
-    </Card.Body>
+                                                </td>
 
-</Card>
+                                                <td>
+
+                                                    <Button
+                                                        size="sm"
+                                                        variant="danger"
+                                                        onClick={() =>
+                                                            deleteReport(
+                                                                report.report_id
+                                                            )
+                                                        }
+                                                    >
+
+                                                        Delete
+
+                                                    </Button>
+
+                                                </td>
+
+                                            </tr>
+
+                                        )
+                                    )
+
+                                )}
+
+                            </tbody>
+
+                        </Table>
+
+                    )}
+
+                </Card.Body>
+
+            </Card>
 
         </MainLayout>
 

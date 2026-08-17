@@ -1,95 +1,120 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
+
 import api from "../../services/api";
 import "./Login.css";
 
 function Login() {
+const navigate = useNavigate();
 
-    const navigate = useNavigate();
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [showPassword, setShowPassword] = useState(false);
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+const handleLogin = async (e) => {
+    e.preventDefault();
 
-    const handleLogin = async (e) => {
+    try {
+        const res = await api.post("/auth/login", {
+            email,
+            password
+        });
 
-        e.preventDefault();
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem(
+            "user",
+            JSON.stringify(res.data.user)
+        );
 
-        try {
+        const company = await api.get("/tenant");
 
-            const res = await api.post("/auth/login", {
-                email,
-                password
-            });
-
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("user", JSON.stringify(res.data.user));
-             
-            const company = await api.get("/tenant");
-
-document.documentElement.style.setProperty(
-    "--primary-color",
-    company.data.tenant.theme_color
-);
-            toast.success("Login Successful");
-
-            navigate("/dashboard");
-
-        } catch (err) {
-
-            alert(
-                err.response?.data?.message || "Login Failed"
+        if (company.data.tenant?.theme_color) {
+            document.documentElement.style.setProperty(
+                "--primary-color",
+                company.data.tenant.theme_color
             );
-
         }
 
-    };
+        toast.success("Login Successful");
 
-    return (
+        navigate("/dashboard");
 
-        <div className="login-container">
+    } catch (err) {
+        toast.error(
+            err.response?.data?.message ||
+            "Login Failed"
+        );
+    }
+};
 
-            <div className="login-card">
+return (
+    <div className="login-container">
 
-                <h2>Multi Tenant Project Management</h2>
+        <div className="login-card">
 
-                <form onSubmit={handleLogin}>
+            <h2>
+                Multi Tenant Project Management
+            </h2>
 
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e)=>setEmail(e.target.value)}
-                        required
-                    />
+            <p className="login-subtitle">
+                Sign in to continue
+            </p>
 
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e)=>setPassword(e.target.value)}
-                        required
-                    />
+            <form onSubmit={handleLogin}>
 
-                    <button type="submit">
+                {/* Email */}
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) =>
+                        setEmail(e.target.value)
+                    }
+                    required
+                />
 
-                        Login
+                {/* Password */}
+                <div className="password-wrapper">
 
-                    </button>
+<input
+    type={showPassword ? "text" : "password"}
+    placeholder="Password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    required
+/>
 
-                </form>
-                <p className="register-link">
-    Don't have an account?{" "}
-    <Link to="/register">
-        Create Company Account
-    </Link>
-</p>
+<button
+    type="button"
+    className="password-toggle"
+    onClick={() => setShowPassword(!showPassword)}
+>
+    {showPassword ? "🙈" : "👁️"}
+</button>
 
-            </div>
+
+</div>
+
+
+                <button type="submit">
+                    Sign In
+                </button>
+
+            </form>
+
+            <p className="register-link">
+                Don't have an account?{" "}
+                <Link to="/register">
+                    Sign Up
+                </Link>
+            </p>
 
         </div>
 
-    );
+    </div>
+);
+
 
 }
 
