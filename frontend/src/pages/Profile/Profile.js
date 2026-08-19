@@ -70,9 +70,9 @@ function Profile() {
 
                                 <img
                                     src={
-                                        user.profile_photo
-                                            ? `http://localhost:5000/${user.profile_photo}`
-                                            : profileImage
+                                       user.profile_photo
+    ? `https://multitenant-project-management-system.onrender.com/${user.profile_photo}`
+    : profileImage
                                     }
                                     alt="Profile"
                                     className="profile-image"
