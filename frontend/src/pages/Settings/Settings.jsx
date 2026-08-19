@@ -51,7 +51,7 @@ function Settings() {
             setCompanyAddress(data.company_address || "");
 
 
-          if (data.company_logo) {
+         if (data.company_logo) {
     setLogoPreview(
         `https://multitenant-project-management-system.onrender.com/${data.company_logo}`
     );
