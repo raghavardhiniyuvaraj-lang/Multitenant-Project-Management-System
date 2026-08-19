@@ -51,13 +51,11 @@ function Settings() {
             setCompanyAddress(data.company_address || "");
 
 
-            if (data.company_logo) {
-
-                setLogoPreview(
-                    `http://localhost:5000/uploads/company/${data.company_logo}`
-                );
-
-            } else {
+          if (data.company_logo) {
+    setLogoPreview(
+        `https://multitenant-project-management-system.onrender.com/${data.company_logo}`
+    );
+} else {
 
                 setLogoPreview("");
 
