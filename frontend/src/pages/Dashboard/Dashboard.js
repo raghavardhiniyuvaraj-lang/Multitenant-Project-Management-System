@@ -309,88 +309,39 @@ function Dashboard() {
     // =====================================================
     // COMPANY LOGO URL
     // =====================================================
+const getLogoUrl = () => {
+    if (!company.company_logo) {
+        return "";
+    }
 
-    const getLogoUrl = () => {
+    let logo = String(company.company_logo).trim();
 
-        if (!company.company_logo) {
+    if (!logo) {
+        return "";
+    }
 
-            return "";
+    // Already a complete URL
+    if (
+        logo.startsWith("http://") ||
+        logo.startsWith("https://")
+    ) {
+        return logo;
+    }
 
-        }
+    // Remove leading slash
+    logo = logo.replace(/^\/+/, "");
 
+    const BACKEND_URL =
+        "https://multitenant-project-management-system.onrender.com";
 
-        let logo =
-            String(
-                company.company_logo
-            ).trim();
+    // Database contains uploads/company/...
+    if (logo.startsWith("uploads/company/")) {
+        return `${BACKEND_URL}/${logo}`;
+    }
 
-
-        if (!logo) {
-
-            return "";
-
-        }
-
-
-        // Remove accidental leading slash
-
-        logo =
-            logo.replace(/^\/+/, "");
-
-
-        // Complete URL
-
-        if (
-            logo.startsWith("http://") ||
-            logo.startsWith("https://")
-        ) {
-
-            return logo;
-
-        }
-
-
-        // If already contains uploads/company/
-
-        if (
-            logo.startsWith(
-                "uploads/company/"
-            )
-        ) {
-
-            return (
-                "http://localhost:5000/" +
-                logo
-            );
-
-        }
-
-
-        // If contains /uploads/company/
-
-        if (
-            logo.startsWith(
-                "/uploads/company/"
-            )
-        ) {
-
-            return (
-                "http://localhost:5000" +
-                logo
-            );
-
-        }
-
-
-        // If database contains only filename
-
-        return (
-            "http://localhost:5000/uploads/company/" +
-            logo
-        );
-
-    };
-
+    // Database contains only filename
+    return `${BACKEND_URL}/uploads/company/${logo}`;
+};
 
     // =====================================================
     // TASK VALUES

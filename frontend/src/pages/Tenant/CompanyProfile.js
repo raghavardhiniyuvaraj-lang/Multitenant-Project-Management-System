@@ -16,7 +16,7 @@ import "./CompanyProfile.css";
 function CompanyProfile() {
 
     // Backend URL
-    const IMAGE_URL = "http://localhost:5000/";
+    const IMAGE_URL = "https://multitenant-project-management-system.onrender.com/";
 
     const [company, setCompany] = useState({
 
